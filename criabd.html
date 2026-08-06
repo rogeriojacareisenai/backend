@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL Workbench - Criação do Banco e Tabela (DDL)</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0f172a;
+    color: #fff;
+}
+
+header {
+    background: linear-gradient(90deg, #2563eb, #0ea5e9);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,.4);
+}
+
+header h1 {
+    margin: 0;
+}
+
+.container {
+    width: 95%;
+    max-width: 1400px;
+    margin: 20px auto;
+}
+
+/* Painel de Controle Superior */
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    background: #111827;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,.4);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Grid Lado a Lado: Script Passo a Passo + Interface MySQL Workbench */
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.box {
+    background: #111827;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,.4);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+h2 {
+    color: #38bdf8;
+    margin-top: 0;
+}
+
+/* Bloco do Script SQL de Exposição */
+.code {
+    background: #020617;
+    border-left: 5px solid #38bdf8;
+    padding: 15px;
+    min-height: 480px;
+    color: #38bdf8;
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    flex-grow: 1;
+}
+
+.code .linha {
+    display: inline;
+    white-space: pre;
+    border-radius: 3px;
+}
+
+.code .linha-ativa {
+    background-color: rgba(234, 179, 8, 0.25);
+    color: #fef08a;
+}
+
+/* INTERFACE SIMULADA DO MYSQL WORKBENCH */
+.workbench-window {
+    background: #f0f0f0;
+    border-radius: 6px;
+    border: 1px solid #a0a0a0;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Barra de Título da Janela */
+.wb-titlebar {
+    background: #e1e1e1;
+    background: linear-gradient(to bottom, #f5f5f5, #e1e1e1);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #b0b0b0;
+    font-size: 12px;
+    color: #333;
+}
+
+.wb-titlebar .icon {
+    margin-right: 8px;
+    font-weight: bold;
+    color: #0066cc;
+}
+
+/* Barra de Ferramentas / SQL File Tabs */
+.wb-tabs {
+    background: #d8d8d8;
+    display: flex;
+    padding-left: 5px;
+    border-bottom: 1px solid #b0b0b0;
+}
+
+.wb-tab {
+    background: #e8e8e8;
+    border: 1px solid #b0b0b0;
+    border-bottom: none;
+    padding: 5px 15px;
+    font-size: 12px;
+    color: #555;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    margin-top: 3px;
+}
+
+.wb-tab.active {
+    background: #ffffff;
+    color: #000;
+    font-weight: bold;
+    border-bottom: 1px solid #ffffff;
+    margin-bottom: -1px;
+}
+
+/* Toolbar MySQL Workbench */
+.wb-toolbar {
+    background: #f5f5f5;
+    border-bottom: 1px solid #d0d0d0;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.wb-btn-exec {
+    background: #fff;
+    border: 1px solid #a0a0a0;
+    border-radius: 3px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #222;
+}
+
+/* Editor SQL Interno do Workbench */
+.wb-editor {
+    background: #ffffff;
+    color: #000;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 10px;
+    height: 180px;
+    overflow-y: auto;
+    border-bottom: 2px solid #0066cc;
+    white-space: pre-wrap;
+}
+
+/* Área inferior do Log de Output do Workbench */
+.wb-output-panel {
+    background: #fcfcfc;
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #ccc;
+}
+
+.wb-output-header {
+    background: #e5e5e5;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #444;
+    border-bottom: 1px solid #d0d0d0;
+    text-transform: uppercase;
+}
+
+.wb-output-grid {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+}
+
+.wb-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.wb-log-table th {
+    background: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #e0e0e0;
+    padding: 4px 8px;
+    font-weight: normal;
+    color: #666;
+    font-size: 11px;
+}
+
+.wb-log-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #f0f0f0;
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.wb-status-ok {
+    color: #008000;
+    font-weight: bold;
+}
+
+/* Estilos de Botão e Painel */
+.explicacao {
+    margin-top: 20px;
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.6;
+    display: none;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    background: #475569;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+button.active {
+    background: #0284c7;
+    border: 2px solid #38bdf8;
+}
+
+input[type="range"] {
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #ccc;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+<h1>Criação de Banco de Dados e Tabela (SQL / DDL)</h1>
+<p>Simulação da execução das instruções DDL no editor e painel de saída do <b>MySQL Workbench</b>.</p>
+</header>
+
+<div class="container">
+
+    <div class="controls-panel">
+        <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
+        
+        <div class="control-group">
+            <button id="btnModoAuto" class="active" onclick="setModo('auto')">Automático</button>
+            <button id="btnModoManual" onclick="setModo('manual')">Manual</button>
+        </div>
+
+        <div class="control-group" id="grupoTempo">
+            <label for="rangeTempo">Pausa:</label>
+            <input type="range" id="rangeTempo" min="500" max="4000" step="250" value="1600" oninput="atualizarRotuloTempo(this.value)">
+            <span id="labelTempo">1.6s</span>
+        </div>
+
+        <div class="control-group">
+            <button id="btnAnterior" onclick="retroceder()" disabled>← Voltar</button>
+            <button id="btnProximo" onclick="avancarManual()" disabled>Avançar →</button>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <!-- ESQUERDA: CÓDIGO SQL PASSO A PASSO -->
+        <div class="box">
+            <h2>1 - Instruções SQL</h2>
+            <div id="codigo" class="code"></div>
+        </div>
+
+        <!-- DIREITA: MYSQL WORKBENCH INTERFACE -->
+        <div class="box">
+            <h2>2 - MySQL Workbench (IDE)</h2>
+            <div class="workbench-window">
+                
+                <div class="wb-titlebar">
+                    <span class="icon">🐬</span> MySQL Workbench - [Local instance MySQL80]
+                </div>
+
+                <div class="wb-tabs">
+                    <div class="wb-tab active">SQL File 1*</div>
+                </div>
+
+                <div class="wb-toolbar">
+                    <button class="wb-btn-exec">⚡ Execute</button>
+                    <span style="color: #888; font-size: 11px;">Schema: sistema_db</span>
+                </div>
+
+                <!-- Editor de Texto Superior do Workbench -->
+                <div class="wb-editor" id="wbEditor"></div>
+
+                <!-- Painel de Action Output do Workbench -->
+                <div class="wb-output-panel">
+                    <div class="wb-output-header">Action Output</div>
+                    <div class="wb-output-grid">
+                        <table class="wb-log-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">#</th>
+                                    <th style="width: 60px;">Time</th>
+                                    <th>Action</th>
+                                    <th style="width: 140px;">Response</th>
+                                    <th style="width: 80px;">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wbLogBody">
+                                <!-- As linhas do log aparecem aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="explicacao" class="explicacao"></div>
+
+</div>
+
+<footer>
+MySQL Workbench • Visualização DDL e Log de Ações do Servidor
+</footer>
+
+<script>
+
+const etapas = [
+{
+codigo: "create database sistema_db;\n",
+texto: "<b>create database:</b> Comando DDL responsável por criar um novo banco de dados no servidor MySQL com o nome <code>sistema_db</code>.",
+editorText: "CREATE DATABASE sistema_db;\n",
+log: {
+    time: "14:20:01",
+    action: "CREATE DATABASE sistema_db",
+    response: "1 row(s) affected",
+    duration: "0.015 sec"
+}
+},
+{
+codigo: "use sistema_db;\n",
+texto: "<b>use:</b> Seleciona e ativa o banco de dados <code>sistema_db</code>. Todos os comandos seguintes serão executados dentro deste Schema.",
+editorText: "USE sistema_db;\n\n",
+log: {
+    time: "14:20:02",
+    action: "USE sistema_db",
+    response: "0 row(s) affected",
+    duration: "0.000 sec"
+}
+},
+{
+codigo: "create table clientes(\n",
+texto: "<b>create table:</b> Instrução que inicia a definição da nova tabela chamada <code>clientes</code> no banco ativo.",
+editorText: "CREATE TABLE clientes (\n",
+log: null
+},
+{
+codigo: " id int auto_increment not null primary key,\n",
+texto: "<b>id int auto_increment not null primary key:</b><br>" +
+       "• <b>id</b>: Nome do campo/coluna.<br>" +
+       "• <b>int</b>: Tipo de dado inteiro (números sem vírgula).<br>" +
+       "• <b>auto_increment</b>: O MySQL gera o próximo número automaticamente (1, 2, 3...) a cada novo cadastro.<br>" +
+       "• <b>not null</b>: Impede que o campo fique sem valor (vazio).<br>" +
+       "• <b>primary key</b>: Define este campo como a chave primária (identificador único da tabela).",
+editorText: "    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,\n",
+log: null
+},
+{
+codigo: " nome char(40) not null,\n",
+texto: "<b>nome char(40) not null:</b><br>" +
+       "• <b>nome</b>: Nome do campo.<br>" +
+       "• <b>char(40)</b>: Tipo texto com tamanho fixo de até 40 caracteres.<br>" +
+       "• <b>not null</b>: Torna o preenchimento do nome obrigatório.",
+editorText: "    nome CHAR(40) NOT NULL,\n",
+log: null
+},
+{
+codigo: " cpf char(11) not null unique,\n",
+texto: "<b>cpf char(11) not null unique:</b><br>" +
+       "• <b>cpf</b>: Nome do campo.<br>" +
+       "• <b>char(11)</b>: Espaço fixo para exatamente 11 dígitos do CPF.<br>" +
+       "• <b>not null</b>: O CPF não pode ficar em branco.<br>" +
+       "• <b>unique</b>: Restrição que impede o cadastro de dois clientes com o mesmo número de CPF.",
+editorText: "    cpf CHAR(11) NOT NULL UNIQUE,\n",
+log: null
+},
+{
+codigo: " idade char(3) not null,\n",
+texto: "<b>idade char(3) not null:</b><br>" +
+       "• <b>idade</b>: Nome do campo.<br>" +
+       "• <b>char(3)</b>: Permite guardar até 3 caracteres de texto (ex: '025', '102').<br>" +
+       "• <b>not null</b>: Obrigatório o preenchimento.",
+editorText: "    idade CHAR(3) NOT NULL,\n",
+log: null
+},
+{
+codigo: " endereco char(50) not null\n",
+texto: "<b>endereco char(50) not null:</b><br>" +
+       "• <b>endereco</b>: Nome do campo.<br>" +
+       "• <b>char(50)</b>: Campo de texto fixo com capacidade para até 50 caracteres.<br>" +
+       "• <b>not null</b>: Campo de preenchimento obrigatório.",
+editorText: "    endereco CHAR(50) NOT NULL\n",
+log: null
+},
+{
+codigo: ");",
+texto: "<b>);</b> Encerra a definição da estrutura da tabela e envia a consulta SQL para execução final no servidor MySQL Workbench.",
+editorText: ");",
+log: {
+    time: "14:20:05",
+    action: "CREATE TABLE clientes (id INT AUTO_INCREMENT..., nome CHAR(40)...)",
+    response: "0 row(s) affected",
+    duration: "0.031 sec"
+}
+}
+];
+
+let indice = 0;
+let modo = 'auto'; 
+let tempoPausa = 1600;
+let timerAtual = null;
+let emAnimacao = false;
+
+function atualizarRotuloTempo(val) {
+    tempoPausa = parseInt(val);
+    document.getElementById("labelTempo").innerText = (val / 1000).toFixed(1) + "s";
+}
+
+function setModo(novoModo) {
+    modo = novoModo;
+    document.getElementById("btnModoAuto").classList.toggle("active", modo === 'auto');
+    document.getElementById("btnModoManual").classList.toggle("active", modo === 'manual');
+    
+    atualizarBotoesNavegacao();
+
+    if (modo === 'auto' && !emAnimacao && indice < etapas.length) {
+        executarEtapaAtual();
+    }
+}
+
+function limparTimer() {
+    if (timerAtual) {
+        clearTimeout(timerAtual);
+        timerAtual = null;
+    }
+}
+
+function renderizarCodigoAcumulado(posCaractereAtual) {
+    let html = "";
+    
+    for (let i = 0; i <= indice; i++) {
+        if (i < indice) {
+            html += `<span class="linha">${escaparHtml(etapas[i].codigo)}</span>`;
+        } else if (i === indice) {
+            let textoAtual = etapas[i].codigo;
+            if (posCaractereAtual !== undefined) {
+                textoAtual = textoAtual.substring(0, posCaractereAtual);
+            }
+            html += `<span class="linha linha-ativa">${escaparHtml(textoAtual)}</span>`;
+        }
+    }
+    document.getElementById("codigo").innerHTML = html;
+}
+
+function renderizarWorkbenchAcumulado() {
+    let editorAcumulado = "";
+    let logsHtml = "";
+    let logCount = 1;
+
+    for (let i = 0; i <= indice; i++) {
+        if (etapas[i].editorText) {
+            editorAcumulado += etapas[i].editorText;
+        }
+
+        if (etapas[i].log) {
+            let l = etapas[i].log;
+            logsHtml += `<tr>
+                <td style="text-align:center;"><span class="wb-status-ok">G</span></td>
+                <td>${l.time}</td>
+                <td><b>${escaparHtml(l.action)}</b></td>
+                <td>${l.response}</td>
+                <td>${l.duration}</td>
+            </tr>`;
+            logCount++;
+        }
+    }
+
+    document.getElementById("wbEditor").innerText = editorAcumulado;
+    document.getElementById("wbLogBody").innerHTML = logsHtml;
+}
+
+function escaparHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function escreverCodigo(texto, pos, callback){
+    if (pos <= texto.length){
+        renderizarCodigoAcumulado(pos);
+        timerAtual = setTimeout(() => {
+            escreverCodigo(texto, pos + 1, callback);
+        }, 15);
+    } else {
+        callback();
+    }
+}
+
+function escreverExplicacao(textoHtml, callback){
+    const divExp = document.getElementById("explicacao");
+    divExp.innerHTML = "<b>Explicação do Comando / Tipo de Dado:</b><br><br>" + textoHtml;
+    if(callback) callback();
+}
+
+function executarEtapaAtual() {
+    limparTimer();
+    emAnimacao = true;
+    atualizarBotoesNavegacao();
+
+    document.getElementById("explicacao").style.display = "block";
+
+    let etapa = etapas[indice];
+
+    escreverCodigo(etapa.codigo, 0, function() {
+        renderizarWorkbenchAcumulado();
+
+        escreverExplicacao(etapa.texto, function() {
+            emAnimacao = false;
+            atualizarBotoesNavegacao();
+
+            if (modo === 'auto') {
+                if (indice < etapas.length - 1) {
+                    indice++;
+                    timerAtual = setTimeout(executarEtapaAtual, tempoPausa);
+                }
+            }
+        });
+    });
+}
+
+function avancarManual() {
+    if (emAnimacao) return;
+    if (modo === 'auto') {
+        setModo('manual');
+    }
+    if (indice < etapas.length - 1) {
+        indice++;
+        executarEtapaAtual();
+    }
+}
+
+function retroceder() {
+    limparTimer();
+    emAnimacao = false;
+    
+    if (indice > 0) {
+        indice--;
+        renderizarCodigoAcumulado();
+        renderizarWorkbenchAcumulado();
+        document.getElementById("explicacao").style.display = "block";
+        document.getElementById("explicacao").innerHTML = "<b>Explicação do Comando / Tipo de Dado:</b><br><br>" + etapas[indice].texto;
+    }
+    atualizarBotoesNavegacao();
+}
+
+function reiniciar() {
+    limparTimer();
+    emAnimacao = false;
+    indice = 0;
+    document.getElementById("codigo").innerHTML = "";
+    document.getElementById("explicacao").style.display = "none";
+    document.getElementById("explicacao").innerHTML = "";
+    renderizarWorkbenchAcumulado();
+    executarEtapaAtual();
+}
+
+function atualizarBotoesNavegacao() {
+    document.getElementById("btnAnterior").disabled = (indice <= 0 || emAnimacao);
+    document.getElementById("btnProximo").disabled = (indice >= etapas.length - 1 || emAnimacao);
+}
+
+window.onload = function() {
+    reiniciar();
+};
+
+</script>
+
+</body>
+</html>
