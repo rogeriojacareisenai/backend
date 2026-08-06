@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta PHP + MySQLi (Busca por Nome com HTML Puro)</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#0f172a;
+    color:#fff;
+}
+
+header{
+    background:linear-gradient(90deg,#2563eb,#0ea5e9);
+    padding:20px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+}
+
+header h1{
+    margin:0;
+}
+
+.container{
+    width:95%;
+    max-width:1400px;
+    margin:20px auto;
+}
+
+/* Painel de Controle Superior */
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    background: #111827;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow:0 0 15px rgba(0,0,0,.4);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Grid Lado a Lado: Código + Navegador */
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.box{
+    background:#111827;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 0 15px rgba(0,0,0,.4);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+h2{
+    color:#38bdf8;
+    margin-top:0;
+}
+
+/* Bloco do Código PHP */
+.code{
+    background:#020617;
+    border-left:5px solid #38bdf8;
+    padding:15px;
+    min-height:480px;
+    color:#7CFC00;
+    font-family:Consolas, monospace;
+    font-size:14px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    flex-grow: 1;
+}
+
+.code .linha {
+    display: inline;
+    white-space: pre;
+    border-radius: 3px;
+}
+
+.code .linha-ativa {
+    background-color: rgba(234, 179, 8, 0.25);
+    color: #fef08a;
+}
+
+/* JANELA DO NAVEGADOR WEB SIMULADA */
+.browser-window {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    color: #000000;
+}
+
+.browser-header {
+    background: #e2e8f0;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.browser-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-browser {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.btn-close { background: #ef4444; }
+.btn-min { background: #f59e0b; }
+.btn-max { background: #10b981; }
+
+.browser-address-bar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.browser-address-bar .icon {
+    color: #10b981;
+    font-weight: bold;
+}
+
+/* Área de renderização do Navegador sem CSS personalizado */
+.browser-body {
+    padding: 15px;
+    min-height: 400px;
+    background: #ffffff;
+    flex-grow: 1;
+    color: #000;
+}
+
+.explicacao{
+    margin-top:20px;
+    background:#1e293b;
+    padding:15px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.6;
+    display:none;
+}
+
+button{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    font-size:15px;
+    border-radius:6px;
+    cursor:pointer;
+    transition: background 0.2s;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+button:disabled{
+    background:#475569;
+    cursor:not-allowed;
+    opacity:0.6;
+}
+
+button.active {
+    background:#0284c7;
+    border: 2px solid #38bdf8;
+}
+
+input[type="range"] {
+    cursor: pointer;
+}
+
+footer{
+    text-align:center;
+    padding:20px;
+    color:#ccc;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+<h1>Consulta PHP + SELECT MySQLi (Busca por Nome)</h1>
+<p>Execução passo a passo simulando um formulário de pesquisa, filtros no banco e impressão dos resultados.</p>
+</header>
+
+<div class="container">
+
+    <div class="controls-panel">
+        <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
+        
+        <div class="control-group">
+            <button id="btnModoAuto" class="active" onclick="setModo('auto')">Automático</button>
+            <button id="btnModoManual" onclick="setModo('manual')">Manual</button>
+        </div>
+
+        <div class="control-group" id="grupoTempo">
+            <label for="rangeTempo">Pausa:</label>
+            <input type="range" id="rangeTempo" min="500" max="4000" step="250" value="1600" oninput="atualizarRotuloTempo(this.value)">
+            <span id="labelTempo">1.6s</span>
+        </div>
+
+        <div class="control-group">
+            <button id="btnAnterior" onclick="retroceder()" disabled>← Voltar</button>
+            <button id="btnProximo" onclick="avancarManual()" disabled>Avançar →</button>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <!-- ESQUERDA: CÓDIGO PHP -->
+        <div class="box">
+            <h2>1 - Código PHP (Servidor)</h2>
+            <div id="codigo" class="code"></div>
+        </div>
+
+        <!-- DIREITA: NAVEGADOR WEB SIMULADO -->
+        <div class="box">
+            <h2>2 - Navegador Web (Saída do Cliente)</h2>
+            <div class="browser-window">
+                <div class="browser-header">
+                    <div class="browser-top-bar">
+                        <span class="btn-browser btn-close"></span>
+                        <span class="btn-browser btn-min"></span>
+                        <span class="btn-browser btn-max"></span>
+                    </div>
+                    <div class="browser-address-bar">
+                        <span class="icon">🔒</span> http://localhost/consultar.php
+                    </div>
+                </div>
+                <div class="browser-body" id="browserPage">
+                    <!-- Conteúdo HTML do navegador -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="explicacao" class="explicacao"></div>
+
+</div>
+
+<footer>
+PHP & MySQLi • Modelo de Consulta e Busca de Dados
+</footer>
+
+<script>
+
+const etapas = [
+{
+codigo: "<?php\n",
+texto: "<b>Delimitador de Início:</b> Inicia a execução do código PHP no servidor.",
+saida: null,
+url: "http://localhost/consultar.php"
+},
+
+/* FORMULÁRIO HTML IMPRESSO PELO PHP */
+{
+codigo: "echo \"<h2>Consultar Clientes</h2>\";\n",
+texto: "<b>echo:</b> Imprime o título principal da página de busca no navegador.",
+saida: "<h2>Consultar Clientes</h2>",
+url: "http://localhost/consultar.php"
+},
+{
+codigo: "echo \"<form method='GET' action='consultar.php'>\";\n",
+texto: "<b>&lt;form method='GET'&gt;:</b> Cria o formulário usando o método GET (ideal para pesquisas, pois os parâmetros são enviados diretamente na URL).",
+saida: "<form action='consultar.php' method='GET'>",
+url: "http://localhost/consultar.php"
+},
+{
+codigo: "echo \"  <label>Digite o Nome:</label> \";\n",
+texto: "<b>echo:</b> Imprime o rótulo do campo de busca.",
+saida: "  <label>Digite o Nome:</label> ",
+url: "http://localhost/consultar.php"
+},
+{
+codigo: "echo \"  <input type='text' name='nome' value='Maria'> \";\n",
+texto: "<b>&lt;input name='nome'&gt;:</b> Campo de texto onde o usuário digita o termo a ser pesquisado (simulando a busca pelo nome 'Maria').",
+saida: "  <input type='text' name='nome' value='Maria'> ",
+url: "http://localhost/consultar.php"
+},
+{
+codigo: "echo \"  <input type='submit' value='Buscar'>\";\n",
+texto: "<b>&lt;input type='submit'&gt;:</b> Botão que envia a requisição de busca.",
+saida: "  <input type='submit' value='Buscar'>",
+url: "http://localhost/consultar.php"
+},
+{
+codigo: "echo \"</form><hr>\";\n",
+texto: "<b>echo:</b> Fecha a tag do formulário e insere uma linha divisória (&lt;hr&gt;).",
+saida: "</form><hr>",
+url: "http://localhost/consultar.php"
+},
+
+/* VERIFICAÇÃO DO ENVIO DA CONSULTA */
+{
+codigo: "if (isset($_GET['nome'])) {\n",
+texto: "<b>isset($_GET['nome']):</b> Testa se o formulário foi enviado e se existe o parâmetro 'nome' na URL.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "    $busca = $_GET['nome'];\n",
+texto: "<b>$busca:</b> Armazena o termo pesquisado obtido via $_GET ('Maria').",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+
+/* CONEXÃO COM BANCO DE DADOS */
+{
+codigo: "    $conexao = new mysqli('localhost', 'root', '', 'sistema_db');\n",
+texto: "<b>new mysqli(...):</b> Abre a conexão com o banco de dados 'sistema_db'.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+
+/* MONTAGEM DA QUERY SELECT COM LIKE */
+{
+codigo: "    $sql = \"SELECT * FROM clientes WHERE nome LIKE '%$busca%'\";\n",
+texto: "<b>SELECT * FROM ... WHERE nome LIKE '%Maria%':</b> Comando SQL que busca registros onde o campo nome contenha o termo digitado em qualquer posição.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+
+/* EXECUÇÃO E RECUPERAÇÃO DOS RESULTADOS */
+{
+codigo: "    $resultado = $conexao->query($sql);\n",
+texto: "<b>$resultado:</b> Executa a busca e guarda o ponteiro com os registros retornados do MySQL.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+
+/* IMPRESSÃO DO CABEÇALHO DA RESULTADO */
+{
+codigo: "    echo \"<h3>Resultados Encontrados:</h3>\";\n",
+texto: "<b>echo:</b> Imprime o subtítulo dos resultados obtidos.",
+saida: "<h3>Resultados Encontrados:</h3>",
+url: "http://localhost/consultar.php?nome=Maria"
+},
+
+/* ESTRUTURA REPETITIVA WHILE */
+{
+codigo: "    if ($resultado->num_rows > 0) {\n",
+texto: "<b>$resultado->num_rows:</b> Verifica se a consulta retornou ao menos 1 registro encontrado no banco.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "        while ($linha = $resultado->fetch_assoc()) {\n",
+texto: "<b>while (... fetch_assoc()):</b> Percorre cada registro retornado transformando-o em um array associativo ($linha).",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "            echo \"ID: \" . $linha['id'] . \" - Nome: \" . $linha['nome'] . \" - CPF: \" . $linha['cpf'] . \"<br>\";\n",
+texto: "<b>echo:</b> Imprime na tela do navegador os campos do registro recuperado ('Maria Silva').",
+saida: "ID: 1 - Nome: Maria Silva - CPF: 123.456.789-00<br>",
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "        }\n",
+texto: "<b>Fim do laço while.</b>",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "    } else {\n",
+texto: "<b>else:</b> Executado apenas se nenhum cliente for encontrado na busca.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "        echo \"Nenhum cliente encontrado.\";\n",
+texto: "<b>echo:</b> Mensagem impressa quando num_rows for igual a 0.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "    }\n",
+texto: "<b>Fim da estrutura condicional de resultados.</b>",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+
+/* FECHAMENTO DE CONEXÃO E IF PRINCIPAL */
+{
+codigo: "    $conexao->close();\n",
+texto: "<b>$conexao->close():</b> Encerra a conexão ativa com o servidor MySQL.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "}\n",
+texto: "<b>Fim do bloco IF principal.</b>",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+},
+{
+codigo: "?>",
+texto: "<b>Delimitador de Fechamento:</b> Encerra o script PHP.",
+saida: null,
+url: "http://localhost/consultar.php?nome=Maria"
+}
+];
+
+let indice = 0;
+let modo = 'auto'; 
+let tempoPausa = 1600;
+let timerAtual = null;
+let emAnimacao = false;
+
+function atualizarRotuloTempo(val) {
+    tempoPausa = parseInt(val);
+    document.getElementById("labelTempo").innerText = (val / 1000).toFixed(1) + "s";
+}
+
+function setModo(novoModo) {
+    modo = novoModo;
+    document.getElementById("btnModoAuto").classList.toggle("active", modo === 'auto');
+    document.getElementById("btnModoManual").classList.toggle("active", modo === 'manual');
+    
+    atualizarBotoesNavegacao();
+
+    if (modo === 'auto' && !emAnimacao && indice < etapas.length) {
+        executarEtapaAtual();
+    }
+}
+
+function limparTimer() {
+    if (timerAtual) {
+        clearTimeout(timerAtual);
+        timerAtual = null;
+    }
+}
+
+function renderizarCodigoAcumulado(posCaractereAtual) {
+    let html = "";
+    
+    for (let i = 0; i <= indice; i++) {
+        if (i < indice) {
+            html += `<span class="linha">${escaparHtml(etapas[i].codigo)}</span>`;
+        } else if (i === indice) {
+            let textoAtual = etapas[i].codigo;
+            if (posCaractereAtual !== undefined) {
+                textoAtual = textoAtual.substring(0, posCaractereAtual);
+            }
+            html += `<span class="linha linha-ativa">${escaparHtml(textoAtual)}</span>`;
+        }
+    }
+    document.getElementById("codigo").innerHTML = html;
+}
+
+function renderizarNavegacaoAcumulado() {
+    let htmlAcumulado = "";
+    
+    for (let i = 0; i <= indice; i++) {
+        if (etapas[i].saida) {
+            htmlAcumulado += etapas[i].saida;
+        }
+        if (etapas[i].url) {
+            document.querySelector(".browser-address-bar").innerHTML = `<span class="icon">🔒</span> ${etapas[i].url}`;
+        }
+    }
+    
+    document.getElementById("browserPage").innerHTML = htmlAcumulado;
+}
+
+function escaparHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function escreverCodigo(texto, pos, callback){
+    if (pos <= texto.length){
+        renderizarCodigoAcumulado(pos);
+        timerAtual = setTimeout(() => {
+            escreverCodigo(texto, pos + 1, callback);
+        }, 15);
+    } else {
+        callback();
+    }
+}
+
+function escreverExplicacao(textoHtml, callback){
+    const divExp = document.getElementById("explicacao");
+    divExp.innerHTML = "<b>Explicação do Comando / Variável:</b><br><br>" + textoHtml;
+    if(callback) callback();
+}
+
+function executarEtapaAtual() {
+    limparTimer();
+    emAnimacao = true;
+    atualizarBotoesNavegacao();
+
+    document.getElementById("explicacao").style.display = "block";
+
+    let etapa = etapas[indice];
+
+    escreverCodigo(etapa.codigo, 0, function() {
+        renderizarNavegacaoAcumulado();
+
+        escreverExplicacao(etapa.texto, function() {
+            emAnimacao = false;
+            atualizarBotoesNavegacao();
+
+            if (modo === 'auto') {
+                if (indice < etapas.length - 1) {
+                    indice++;
+                    timerAtual = setTimeout(executarEtapaAtual, tempoPausa);
+                }
+            }
+        });
+    });
+}
+
+function avancarManual() {
+    if (emAnimacao) return;
+    if (modo === 'auto') {
+        setModo('manual');
+    }
+    if (indice < etapas.length - 1) {
+        indice++;
+        executarEtapaAtual();
+    }
+}
+
+function retroceder() {
+    limparTimer();
+    emAnimacao = false;
+    
+    if (indice > 0) {
+        indice--;
+        renderizarCodigoAcumulado();
+        renderizarNavegacaoAcumulado();
+        document.getElementById("explicacao").style.display = "block";
+        document.getElementById("explicacao").innerHTML = "<b>Explicação do Comando / Variável:</b><br><br>" + etapas[indice].texto;
+    }
+    atualizarBotoesNavegacao();
+}
+
+function reiniciar() {
+    limparTimer();
+    emAnimacao = false;
+    indice = 0;
+    document.getElementById("codigo").innerHTML = "";
+    document.getElementById("explicacao").style.display = "none";
+    document.getElementById("explicacao").innerHTML = "";
+    renderizarNavegacaoAcumulado();
+    executarEtapaAtual();
+}
+
+function atualizarBotoesNavegacao() {
+    document.getElementById("btnAnterior").disabled = (indice <= 0 || emAnimacao);
+    document.getElementById("btnProximo").disabled = (indice >= etapas.length - 1 || emAnimacao);
+}
+
+window.onload = function() {
+    reiniciar();
+};
+
+</script>
+
+</body>
+</html>
