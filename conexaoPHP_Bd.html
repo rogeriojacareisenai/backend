@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Processamento PHP, Conexão MySQLi e Renderização HTML Puro</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#0f172a;
+    color:#fff;
+}
+
+header{
+    background:linear-gradient(90deg,#2563eb,#0ea5e9);
+    padding:20px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+}
+
+header h1{
+    margin:0;
+}
+
+.container{
+    width:95%;
+    max-width:1400px;
+    margin:20px auto;
+}
+
+/* Painel de Controle Superior */
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    background: #111827;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow:0 0 15px rgba(0,0,0,.4);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Grid Lado a Lado: Código + Navegador */
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.box{
+    background:#111827;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 0 15px rgba(0,0,0,.4);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+h2{
+    color:#38bdf8;
+    margin-top:0;
+}
+
+/* Bloco do Código PHP */
+.code{
+    background:#020617;
+    border-left:5px solid #38bdf8;
+    padding:15px;
+    min-height:450px;
+    color:#7CFC00;
+    font-family:Consolas, monospace;
+    font-size:14px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    flex-grow: 1;
+}
+
+.code .linha {
+    display: inline;
+    white-space: pre;
+    border-radius: 3px;
+}
+
+.code .linha-ativa {
+    background-color: rgba(234, 179, 8, 0.25);
+    color: #fef08a;
+}
+
+/* --- JANELA DO NAVEGADOR WEB SIMULADA --- */
+.browser-window {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    color: #000000; /* Texto do navegador em cor padrão preta */
+}
+
+.browser-header {
+    background: #e2e8f0;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.browser-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-browser {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.btn-close { background: #ef4444; }
+.btn-min { background: #f59e0b; }
+.btn-max { background: #10b981; }
+
+.browser-address-bar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.browser-address-bar .icon {
+    color: #10b981;
+    font-weight: bold;
+}
+
+/* Área de renderização do Navegador sem fontes estilizadas */
+.browser-body {
+    padding: 15px;
+    min-height: 380px;
+    background: #ffffff;
+    flex-grow: 1;
+    color: #000;
+}
+
+.placeholder-carregando {
+    color: #666;
+    font-style: italic;
+}
+
+.explicacao{
+    margin-top:20px;
+    background:#1e293b;
+    padding:15px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.6;
+    display:none;
+}
+
+button{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    font-size:15px;
+    border-radius:6px;
+    cursor:pointer;
+    transition: background 0.2s;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+button:disabled{
+    background:#475569;
+    cursor:not-allowed;
+    opacity:0.6;
+}
+
+button.active {
+    background:#0284c7;
+    border: 2px solid #38bdf8;
+}
+
+input[type="range"] {
+    cursor: pointer;
+}
+
+footer{
+    text-align:center;
+    padding:20px;
+    color:#ccc;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+<h1>Processamento PHP + Inserção MySQLi (Impressão HTML Pura)</h1>
+<p>Animação passo a passo detalhando comandos, variáveis, conexões e saídas de texto simples no navegador.</p>
+</header>
+
+<div class="container">
+
+    <div class="controls-panel">
+        <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
+        
+        <div class="control-group">
+            <button id="btnModoAuto" class="active" onclick="setModo('auto')">Automático</button>
+            <button id="btnModoManual" onclick="setModo('manual')">Manual</button>
+        </div>
+
+        <div class="control-group" id="grupoTempo">
+            <label for="rangeTempo">Pausa:</label>
+            <input type="range" id="rangeTempo" min="500" max="4000" step="250" value="1600" oninput="atualizarRotuloTempo(this.value)">
+            <span id="labelTempo">1.6s</span>
+        </div>
+
+        <div class="control-group">
+            <button id="btnAnterior" onclick="retroceder()" disabled>← Voltar</button>
+            <button id="btnProximo" onclick="avancarManual()" disabled>Avançar →</button>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <!-- ESQUERDA: CÓDIGO PHP -->
+        <div class="box">
+            <h2>1 - Código PHP (Servidor)</h2>
+            <div id="codigo" class="code"></div>
+        </div>
+
+        <!-- DIREITA: NAVEGADOR WEB SIMULADO (TEXTO PURO / HTML BÁSICO) -->
+        <div class="box">
+            <h2>2 - Navegador Web (Saída do Cliente)</h2>
+            <div class="browser-window">
+                <div class="browser-header">
+                    <div class="browser-top-bar">
+                        <span class="btn-browser btn-close"></span>
+                        <span class="btn-browser btn-min"></span>
+                        <span class="btn-browser btn-max"></span>
+                    </div>
+                    <div class="browser-address-bar">
+                        <span class="icon">🔒</span> http://localhost/cadastrar.php
+                    </div>
+                </div>
+                <div class="browser-body" id="browserPage">
+                    <div class="placeholder-carregando">
+                        Aguardando envio do formulário...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="explicacao" class="explicacao"></div>
+
+</div>
+
+<footer>
+PHP & MySQLi • Modelo Completo de Processamento e Impressão Simples
+</footer>
+
+<script>
+
+const etapas = [
+{
+codigo: "<?php\n",
+texto: "<b>Delimitador de Início:</b> Indica ao servidor web onde começa o código PHP a ser processado.",
+saida: null
+},
+
+/* RECEBIMENTO POST */
+{
+codigo: "$nome = $_POST['nome'];\n",
+texto: "<b>$nome:</b> Variável que armazena o texto recebido do campo 'nome' ('Maria Silva').<br><b>$_POST:</b> Array nativo do PHP que captura os dados enviados via formulário.",
+saida: null
+},
+{
+codigo: "$idade = $_POST['idade'];\n",
+texto: "<b>$idade:</b> Variável que guarda o valor numérico informado para a idade (28).",
+saida: null
+},
+{
+codigo: "$cpf = $_POST['cpf'];\n",
+texto: "<b>$cpf:</b> Variável que guarda a string referente ao documento ('123.456.789-00').",
+saida: null
+},
+{
+codigo: "$endereco = $_POST['endereco'];\n",
+texto: "<b>$endereco:</b> Variável que guarda a localização ('Rua das Flores, 123').",
+saida: null
+},
+
+/* CONFIGURAÇÃO DA CONEXÃO */
+{
+codigo: "$servidor = 'localhost';\n",
+texto: "<b>$servidor:</b> Armazena o endereço do servidor MySQL (servidor local).",
+saida: null
+},
+{
+codigo: "$usuario = 'root';\n",
+texto: "<b>$usuario:</b> Variável com o nome de usuário autorizado a conectar no banco.",
+saida: null
+},
+{
+codigo: "$senha = '';\n",
+texto: "<b>$senha:</b> Variável que guarda a senha (vazia no ambiente local).",
+saida: null
+},
+{
+codigo: "$banco = 'sistema_db';\n",
+texto: "<b>$banco:</b> Variável com o nome do banco de dados onde os dados serão inseridos.",
+saida: null
+},
+
+/* INSTANCIAÇÃO MYSQLI */
+{
+codigo: "$conexao = new mysqli($servidor, $usuario, $senha, $banco);\n",
+texto: "<b>new mysqli(...):</b> Instancia um novo objeto da classe 'mysqli', conectando o PHP ao banco.<br><b>$conexao:</b> Objeto gerado que mantém a conexão aberta para enviar comandos.",
+saida: null
+},
+
+/* VERIFICAÇÃO DE ERRO NA CONEXÃO */
+{
+codigo: "if ($conexao->connect_error) {\n",
+texto: "<b>$conexao->connect_error:</b> Propriedade do objeto $conexao que verifica se houve algum erro de acesso ao banco.<br><b>if (...):</b> Avalia se o erro ocorreu.",
+saida: null
+},
+{
+codigo: "    die('Falha na conexão: ' . $conexao->connect_error);\n",
+texto: "<b>die():</b> Interrompe o script imediatamente e imprime a falha caso ocorra erro de conexão.",
+saida: null
+},
+{
+codigo: "}\n",
+texto: "<b>Fechamento do bloco IF:</b> Se a conexão ocorreu sem falhas, a execução continua.",
+saida: null
+},
+
+/* CONSTRUÇÃO DA QUERY INSERT */
+{
+codigo: "$sql = \"INSERT INTO clientes (nome, idade, cpf, endereco) VALUES ('$nome', $idade, '$cpf', '$endereco')\";\n",
+texto: "<b>$sql:</b> Variável string que guarda o comando em linguagem SQL.<br><b>INSERT INTO clientes (...):</b> Instrução para inserir uma nova linha na tabela 'clientes' com os valores armazenados nas variáveis PHP.",
+saida: null
+},
+
+/* EXECUÇÃO E TESTE DE SUCESSO DA QUERY */
+{
+codigo: "if ($conexao->query($sql) === TRUE) {\n",
+texto: "<b>$conexao->query($sql):</b> Método da classe mysqli que executa o comando SQL contido na variável $sql.<br>Retorna <b>TRUE</b> se a inserção for realizada com sucesso.",
+saida: null
+},
+{
+codigo: "    echo \"<h2>Cliente cadastrado com sucesso!</h2>\";\n",
+texto: "<b>echo:</b> Imprime um título simples na página informando o sucesso da inserção.",
+saida: "<h2>Cliente cadastrado com sucesso!</h2>"
+},
+{
+codigo: "    echo \"<p>Dados registrados:</p>\";\n",
+texto: "<b>echo:</b> Imprime um parágrafo indicando o início dos dados do usuário.",
+saida: "<p>Dados registrados:</p>"
+},
+{
+codigo: "    echo \"Nome: \" . $nome . \"<br>\";\n",
+texto: "<b>echo:</b> Imprime o rótulo 'Nome: ' concatenado com o valor da variável $nome e quebra de linha &lt;br&gt;.",
+saida: "Nome: Maria Silva<br>"
+},
+{
+codigo: "    echo \"Idade: \" . $idade . \" anos<br>\";\n",
+texto: "<b>echo:</b> Imprime o rótulo 'Idade: ' concatenado com a variável $idade e a palavra 'anos'.",
+saida: "Idade: 28 anos<br>"
+},
+{
+codigo: "    echo \"CPF: \" . $cpf . \"<br>\";\n",
+texto: "<b>echo:</b> Imprime o rótulo 'CPF: ' concatenado com a variável $cpf.",
+saida: "CPF: 123.456.789-00<br>"
+},
+{
+codigo: "    echo \"Endereço: \" . $endereco . \"<br>\";\n",
+texto: "<b>echo:</b> Imprime o rótulo 'Endereço: ' concatenado com a variável $endereco.",
+saida: "Endereço: Rua das Flores, 123<br>"
+},
+{
+codigo: "} else {\n",
+texto: "<b>else:</b> Bloco executado apenas se a instrução SQL falhar no banco de dados.",
+saida: null
+},
+{
+codigo: "    echo \"Erro ao cadastrar: \" . $conexao->error;\n",
+texto: "<b>$conexao->error:</b> Propriedade do objeto que recupera o texto exato do erro gerado pelo MySQL.",
+saida: null
+},
+{
+codigo: "}\n",
+texto: "<b>Fechamento da estrutura condicional IF/ELSE.</b>",
+saida: null
+},
+
+/* FECHAMENTO DA CONEXÃO */
+{
+codigo: "$conexao->close();\n",
+texto: "<b>$conexao->close():</b> Método do objeto $conexao que fecha a conexão ativa com o banco de dados e libera o recurso.",
+saida: null
+},
+
+{
+codigo: "?>",
+texto: "<b>Delimitador de Fechamento:</b> Encerra a execução do código PHP.",
+saida: null
+}
+];
+
+let indice = 0;
+let modo = 'auto'; 
+let tempoPausa = 1600;
+let timerAtual = null;
+let emAnimacao = false;
+
+function atualizarRotuloTempo(val) {
+    tempoPausa = parseInt(val);
+    document.getElementById("labelTempo").innerText = (val / 1000).toFixed(1) + "s";
+}
+
+function setModo(novoModo) {
+    modo = novoModo;
+    document.getElementById("btnModoAuto").classList.toggle("active", modo === 'auto');
+    document.getElementById("btnModoManual").classList.toggle("active", modo === 'manual');
+    
+    atualizarBotoesNavegacao();
+
+    if (modo === 'auto' && !emAnimacao && indice < etapas.length) {
+        executarEtapaAtual();
+    }
+}
+
+function limparTimer() {
+    if (timerAtual) {
+        clearTimeout(timerAtual);
+        timerAtual = null;
+    }
+}
+
+function renderizarCodigoAcumulado(posCaractereAtual) {
+    let html = "";
+    
+    for (let i = 0; i <= indice; i++) {
+        if (i < indice) {
+            html += `<span class="linha">${escaparHtml(etapas[i].codigo)}</span>`;
+        } else if (i === indice) {
+            let textoAtual = etapas[i].codigo;
+            if (posCaractereAtual !== undefined) {
+                textoAtual = textoAtual.substring(0, posCaractereAtual);
+            }
+            html += `<span class="linha linha-ativa">${escaparHtml(textoAtual)}</span>`;
+        }
+    }
+    document.getElementById("codigo").innerHTML = html;
+}
+
+function renderizarNavegacaoAcumulado() {
+    let htmlAcumulado = "";
+    let encontrouSaida = false;
+    
+    for (let i = 0; i <= indice; i++) {
+        if (etapas[i].saida) {
+            htmlAcumulado += etapas[i].saida;
+            encontrouSaida = true;
+        }
+    }
+    
+    const containerNavegador = document.getElementById("browserPage");
+    if (encontrouSaida) {
+        containerNavegador.innerHTML = htmlAcumulado;
+    } else {
+        containerNavegador.innerHTML = `<div class="placeholder-carregando">Aguardando envio do formulário...</div>`;
+    }
+}
+
+function escaparHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function escreverCodigo(texto, pos, callback){
+    if (pos <= texto.length){
+        renderizarCodigoAcumulado(pos);
+        timerAtual = setTimeout(() => {
+            escreverCodigo(texto, pos + 1, callback);
+        }, 15);
+    } else {
+        callback();
+    }
+}
+
+function escreverExplicacao(textoHtml, callback){
+    const divExp = document.getElementById("explicacao");
+    divExp.innerHTML = "<b>Explicação do Comando / Variável:</b><br><br>" + textoHtml;
+    if(callback) callback();
+}
+
+function executarEtapaAtual() {
+    limparTimer();
+    emAnimacao = true;
+    atualizarBotoesNavegacao();
+
+    document.getElementById("explicacao").style.display = "block";
+
+    let etapa = etapas[indice];
+
+    escreverCodigo(etapa.codigo, 0, function() {
+        renderizarNavegacaoAcumulado();
+
+        escreverExplicacao(etapa.texto, function() {
+            emAnimacao = false;
+            atualizarBotoesNavegacao();
+
+            if (modo === 'auto') {
+                if (indice < etapas.length - 1) {
+                    indice++;
+                    timerAtual = setTimeout(executarEtapaAtual, tempoPausa);
+                }
+            }
+        });
+    });
+}
+
+function avancarManual() {
+    if (emAnimacao) return;
+    if (modo === 'auto') {
+        setModo('manual');
+    }
+    if (indice < etapas.length - 1) {
+        indice++;
+        executarEtapaAtual();
+    }
+}
+
+function retroceder() {
+    limparTimer();
+    emAnimacao = false;
+    
+    if (indice > 0) {
+        indice--;
+        renderizarCodigoAcumulado();
+        renderizarNavegacaoAcumulado();
+        document.getElementById("explicacao").style.display = "block";
+        document.getElementById("explicacao").innerHTML = "<b>Explicação do Comando / Variável:</b><br><br>" + etapas[indice].texto;
+    }
+    atualizarBotoesNavegacao();
+}
+
+function reiniciar() {
+    limparTimer();
+    emAnimacao = false;
+    indice = 0;
+    document.getElementById("codigo").innerHTML = "";
+    document.getElementById("explicacao").style.display = "none";
+    document.getElementById("explicacao").innerHTML = "";
+    renderizarNavegacaoAcumulado();
+    executarEtapaAtual();
+}
+
+function atualizarBotoesNavegacao() {
+    document.getElementById("btnAnterior").disabled = (indice <= 0 || emAnimacao);
+    document.getElementById("btnProximo").disabled = (indice >= etapas.length - 1 || emAnimacao);
+}
+
+window.onload = function() {
+    reiniciar();
+};
+
+</script>
+
+</body>
+</html>

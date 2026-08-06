@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construção de Formulário HTML Passo a Passo</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+header {
+    background: linear-gradient(90deg, #1d4ed8, #0284c7);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+header h1 {
+    margin: 0 0 8px 0;
+    color: #ffffff;
+}
+
+header p {
+    margin: 0;
+    color: #e2e8f0;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+.box {
+    background: #1e293b;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid #334155;
+}
+
+h2 {
+    color: #38bdf8;
+    margin-top: 0;
+}
+
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #334155;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #f8fafc;
+}
+
+/* Layout lado a lado para telas maiores */
+.grid-conteudo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 850px) {
+    .grid-conteudo {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.painel-header {
+    font-size: 16px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Área de Código */
+.code {
+    background-color: #020617 !important;
+    border-left: 5px solid #38bdf8;
+    padding: 20px;
+    min-height: 320px;
+    color: #a3e635 !important;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.code .linha {
+    display: block;
+    white-space: pre;
+    color: #a3e635 !important;
+}
+
+.code .linha-ativa {
+    background-color: rgba(234, 179, 8, 0.2) !important;
+    color: #fef08a !important;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Área de Preview do Formulário (fundo claro para destacar o formulário sem CSS) */
+.preview-box {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    min-height: 320px;
+    border-radius: 4px;
+    border: 2px solid #38bdf8;
+    overflow-y: auto;
+}
+
+/* Caixa de Explicação */
+.explicacao {
+    margin-top: 20px;
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    padding: 18px;
+    border-radius: 8px;
+    font-size: 18px;
+    line-height: 1.5;
+    border: 1px solid #334155;
+    display: none;
+}
+
+.explicacao-titulo {
+    color: #38bdf8 !important;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 19px;
+}
+
+.explicacao-texto {
+    color: #f8fafc !important;
+}
+
+button {
+    background: #2563eb;
+    color: #ffffff !important;
+    border: none;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    background: #475569;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+button.active {
+    background: #0284c7;
+    border: 2px solid #38bdf8;
+}
+
+input[type="range"] {
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+<h1>Formulário HTML de Cadastro</h1>
+<p>Animação interativa com visualização em tempo real do resultado final.</p>
+</header>
+
+<div class="container">
+
+<div class="box">
+
+<h2>1 - Construção Interativa</h2>
+
+<div class="controls-panel">
+    <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
+    
+    <div class="control-group">
+        <button id="btnModoAuto" class="active" onclick="setModo('auto')">Automático</button>
+        <button id="btnModoManual" onclick="setModo('manual')">Manual</button>
+    </div>
+
+    <div class="control-group" id="grupoTempo">
+        <label for="rangeTempo">Pausa:</label>
+        <input type="range" id="rangeTempo" min="500" max="4000" step="250" value="1600" oninput="atualizarRotuloTempo(this.value)">
+        <span id="labelTempo">1.6s</span>
+    </div>
+
+    <div class="control-group">
+        <button id="btnAnterior" onclick="retroceder()" disabled>← Voltar</button>
+        <button id="btnProximo" onclick="avancarManual()" disabled>Avançar →</button>
+    </div>
+</div>
+
+<div class="grid-conteudo">
+    <div>
+        <div class="painel-header">Código HTML</div>
+        <div id="codigo" class="code"></div>
+    </div>
+    
+    <div>
+        <div class="painel-header">Pré-Visualização (Navegador)</div>
+        <div id="preview" class="preview-box"></div>
+    </div>
+</div>
+
+<div id="explicacao" class="explicacao"></div>
+
+</div>
+
+</div>
+
+<footer>
+Estrutura HTML • Demonstração interativa acumulativa
+</footer>
+
+<script>
+
+const etapas = [
+{
+codigo:`<h1>Cadastro de Informações</h1>`,
+texto:"Elemento &lt;h1&gt;: Tag de cabeçalho (heading) usada para definir o título principal visível da página ou da seção."
+},
+{
+codigo:`<form action="cadastro.php" method="POST">`,
+texto:"Elemento &lt;form&gt;: Contêiner que agrupa os campos de entrada. O atributo 'action' define para qual arquivo ou URL os dados serão enviados (cadastro.php). O atributo 'method=POST' especifica que as informações serão enviadas no corpo da requisição HTTP, de forma oculta na URL."
+},
+{
+codigo:`    <label for="nome">Nome:</label>`,
+texto:"Elemento &lt;label&gt;: Rótulo de texto associado a um campo. O atributo 'for=nome' conecta este rótulo ao campo de entrada cujo 'id' seja 'nome', melhorando a acessibilidade."
+},
+{
+codigo:`    <input type="text" id="nome" name="nome"><br><br>`,
+texto:"Elemento &lt;input&gt;: Campo de inserção de dados. O atributo 'type=text' define um campo de texto de linha única. O atributo 'id' identifica o elemento no documento, e o atributo 'name=nome' define o nome da chave pela qual o PHP acessará este valor ($_POST['nome']). A tag &lt;br&gt; insere quebras de linha para organizar o layout."
+},
+{
+codigo:`    <label for="cpf">CPF:</label>`,
+texto:"Elemento &lt;label&gt;: Cria o texto do rótulo para o campo de CPF. O atributo 'for=cpf' faz a ligação com o input de ID correspondente."
+},
+{
+codigo:`    <input type="text" id="cpf" name="cpf"><br><br>`,
+texto:"Elemento &lt;input&gt;: Campo com 'type=text' configurado para receber o CPF. O atributo 'name=cpf' cria a variável de recebimento no servidor ($_POST['cpf'])."
+},
+{
+codigo:`    <label for="idade">Idade:</label>`,
+texto:"Elemento &lt;label&gt;: Cria o rótulo de identificação textual para o campo de idade do formulário."
+},
+{
+codigo:`    <input type="number" id="idade" name="idade"><br><br>`,
+texto:"Elemento &lt;input&gt;: O atributo 'type=number' restringe a entrada no campo para apenas valores numéricos e habilita setas de incremento/decremento no navegador. O atributo 'name=idade' envia o valor numérico para $_POST['idade']."
+},
+{
+codigo:`    <label for="endereco">Endereço:</label>`,
+texto:"Elemento &lt;label&gt;: Define o texto descritivo referente ao campo de endereço residencial."
+},
+{
+codigo:`    <input type="text" id="endereco" name="endereco"><br><br>`,
+texto:"Elemento &lt;input&gt;: Campo de texto ('type=text') para o endereço do usuário. O atributo 'name=endereco' identifica o dado para o PHP em $_POST['endereco']."
+},
+{
+codigo:`    <input type="submit" value="Enviar">`,
+texto:"Elemento &lt;input&gt; com 'type=submit': Transforma o elemento em um botão de envio de formulário. Ao ser clicado, ele dispara o envio de todos os dados dos campos com atributo 'name' para o destino definido em 'action'. O atributo 'value=Enviar' define o texto visível dentro do botão."
+},
+{
+codigo:`</form>`,
+texto:"Tag de fechamento &lt;/form&gt;: Indica o término da estrutura do formulário."
+}
+];
+
+let indice = 0;
+let modo = 'auto';
+let tempoPausa = 1600;
+let timerAtual = null;
+let emAnimacao = false;
+
+function atualizarRotuloTempo(val) {
+    tempoPausa = parseInt(val);
+    document.getElementById("labelTempo").innerText = (val / 1000).toFixed(1) + "s";
+}
+
+function setModo(novoModo) {
+    modo = novoModo;
+    document.getElementById("btnModoAuto").classList.toggle("active", modo === 'auto');
+    document.getElementById("btnModoManual").classList.toggle("active", modo === 'manual');
+    
+    atualizarBotoesNavegacao();
+
+    if (modo === 'auto' && !emAnimacao && indice < etapas.length) {
+        executarEtapaAtual();
+    }
+}
+
+function limparTimer() {
+    if (timerAtual) {
+        clearTimeout(timerAtual);
+        timerAtual = null;
+    }
+}
+
+function renderizarCodigoAcumulado(posCaractereAtual) {
+    let htmlCodigo = "";
+    let htmlPreview = "";
+    
+    for (let i = 0; i <= indice; i++) {
+        if (i < indice) {
+            htmlCodigo += `<span class="linha">${escaparHtml(etapas[i].codigo)}</span>`;
+            htmlPreview += etapas[i].codigo;
+        } else if (i === indice) {
+            let textoAtual = etapas[i].codigo;
+            if (posCaractereAtual !== undefined) {
+                textoAtual = textoAtual.substring(0, posCaractereAtual);
+            }
+            htmlCodigo += `<span class="linha linha-ativa">${escaparHtml(textoAtual)}</span>`;
+            htmlPreview += textoAtual;
+        }
+    }
+    
+    document.getElementById("codigo").innerHTML = htmlCodigo;
+    document.getElementById("preview").innerHTML = htmlPreview;
+}
+
+function escaparHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function escreverCodigo(texto, pos, callback){
+    if (pos <= texto.length){
+        renderizarCodigoAcumulado(pos);
+        timerAtual = setTimeout(() => {
+            escreverCodigo(texto, pos + 1, callback);
+        }, 20);
+    } else {
+        callback();
+    }
+}
+
+function escreverExplicacao(palavras, pos, callback){
+    const spanTexto = document.getElementById("textoExp");
+    if (spanTexto && pos < palavras.length){
+        spanTexto.innerHTML += (pos === 0 ? "" : " ") + palavras[pos];
+        timerAtual = setTimeout(() => {
+            escreverExplicacao(palavras, pos + 1, callback);
+        }, 50);
+    } else {
+        if(callback) callback();
+    }
+}
+
+function executarEtapaAtual() {
+    limparTimer();
+    emAnimacao = true;
+    atualizarBotoesNavegacao();
+
+    const divExp = document.getElementById("explicacao");
+    divExp.style.display = "block";
+    divExp.innerHTML = `<span class="explicacao-titulo">Explicação:</span><span id="textoExp" class="explicacao-texto"></span>`;
+
+    let etapa = etapas[indice];
+
+    escreverCodigo(etapa.codigo, 0, function() {
+        const palavras = etapa.texto.split(" ");
+        escreverExplicacao(palavras, 0, function() {
+            emAnimacao = false;
+            atualizarBotoesNavegacao();
+
+            if (modo === 'auto') {
+                if (indice < etapas.length - 1) {
+                    indice++;
+                    timerAtual = setTimeout(executarEtapaAtual, tempoPausa);
+                }
+            }
+        });
+    });
+}
+
+function avancarManual() {
+    if (emAnimacao) return;
+    if (modo === 'auto') {
+        setModo('manual');
+    }
+    if (indice < etapas.length - 1) {
+        indice++;
+        executarEtapaAtual();
+    }
+}
+
+function retroceder() {
+    limparTimer();
+    emAnimacao = false;
+    
+    if (indice > 0) {
+        indice--;
+        renderizarCodigoAcumulado();
+        const divExp = document.getElementById("explicacao");
+        divExp.style.display = "block";
+        divExp.innerHTML = `<span class="explicacao-titulo">Explicação:</span><span class="explicacao-texto">${etapas[indice].texto}</span>`;
+    }
+    atualizarBotoesNavegacao();
+}
+
+function reiniciar() {
+    limparTimer();
+    emAnimacao = false;
+    indice = 0;
+    document.getElementById("codigo").innerHTML = "";
+    document.getElementById("preview").innerHTML = "";
+    document.getElementById("explicacao").style.display = "none";
+    document.getElementById("explicacao").innerHTML = "";
+    executarEtapaAtual();
+}
+
+function atualizarBotoesNavegacao() {
+    document.getElementById("btnAnterior").disabled = (indice <= 0 || emAnimacao);
+    document.getElementById("btnProximo").disabled = (indice >= etapas.length - 1 || emAnimacao);
+}
+
+window.onload = function() {
+    reiniciar();
+};
+
+</script>
+
+</body>
+</html>
