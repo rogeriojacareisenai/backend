@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exclusão com Consulta: HTML + PHP + MySQL Passo a Passo</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+header {
+    background: linear-gradient(90deg, #1d4ed8, #0284c7);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+header h1 {
+    margin: 0 0 8px 0;
+    color: #ffffff;
+}
+
+header p {
+    margin: 0;
+    color: #e2e8f0;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+.box {
+    background: #1e293b;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid #334155;
+}
+
+h2 {
+    color: #38bdf8;
+    margin-top: 0;
+}
+
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #334155;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #f8fafc;
+}
+
+.grid-conteudo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 850px) {
+    .grid-conteudo {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.painel-header {
+    font-size: 16px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Área de Código */
+.code {
+    background-color: #020617 !important;
+    border-left: 5px solid #38bdf8;
+    padding: 20px;
+    min-height: 450px;
+    max-height: 550px;
+    color: #a3e635 !important;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    border-radius: 4px;
+    overflow-y: auto;
+}
+
+.linha-existente {
+    color: #a3e635 !important;
+}
+
+.linha-nova {
+    background-color: rgba(234, 179, 8, 0.25) !important;
+    color: #fef08a !important;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Área de Preview */
+.preview-box {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    min-height: 450px;
+    max-height: 550px;
+    border-radius: 4px;
+    border: 2px solid #38bdf8;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+}
+
+.preview-box label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.preview-box input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.preview-box button {
+    background-color: #dc2626;
+    color: white !important;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Caixa de Explicação */
+.explicacao {
+    margin-top: 20px;
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.6;
+    border: 1px solid #334155;
+    display: none;
+}
+
+.explicacao-titulo {
+    color: #38bdf8 !important;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.explicacao-texto {
+    color: #f8fafc !important;
+}
+
+button {
+    background: #2563eb;
+    color: #ffffff !important;
+    border: none;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    background: #475569;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+button.active {
+    background: #0284c7;
+    border: 2px solid #38bdf8;
+}
+
+input[type="range"] {
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+    <h1>Exclusão de Registro: HTML + PHP + MySQL</h1>
+    <p>Construção progressiva e acumulativa entre o cliente e o servidor.</p>
+</header>
+
+<div class="container">
+
+<div class="box">
+
+<h2>Demonstração Didática com Acúmulo de Código</h2>
+
+<div class="controls-panel">
+    <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
+    
+    <div class="control-group">
+        <button id="btnModoAuto" class="active" onclick="setModo('auto')">Automático</button>
+        <button id="btnModoManual" onclick="setModo('manual')">Manual</button>
+    </div>
+
+    <div class="control-group" id="grupoTempo">
+        <label for="rangeTempo">Pausa:</label>
+        <input type="range" id="rangeTempo" min="1000" max="6000" step="500" value="3000" oninput="atualizarRotuloTempo(this.value)">
+        <span id="labelTempo">3.0s</span>
+    </div>
+
+    <div class="control-group">
+        <button id="btnAnterior" onclick="retroceder()" disabled>← Voltar</button>
+        <button id="btnProximo" onclick="avancarManual()" disabled>Avançar →</button>
+    </div>
+</div>
+
+<div class="grid-conteudo">
+    <div>
+        <div id="painelNomeArquivo" class="painel-header">Arquivo 1: index.html</div>
+        <div id="codigo" class="code"></div>
+    </div>
+    
+    <div>
+        <div class="painel-header">Navegador / Resposta Visual</div>
+        <div id="preview" class="preview-box"></div>
+    </div>
+</div>
+
+<div id="explicacao" class="explicacao"></div>
+
+</div>
+
+</div>
+
+<footer>
+Guia Didático • Arquitetura Web Cliente-Servidor (HTML & PHP)
+</footer>
+
+<script>
+
+const etapas = [
+// --- ARQUIVO 1: HTML (index.html) ---
+{
+arquivo: "Arquivo 1: index.html (Formulário no Navegador)",
+limparCaixa: true,
+linhaNova: `<form action="excluir.php" method="POST">`,
+preview:`<form onsubmit="return false;">
+    <p><em>[Aguardando os campos do formulário...]</em></p>
+</form>`,
+texto:"Abertura do Formulário HTML: A tag <form> inicia a estrutura da interface. O atributo action='excluir.php' indica para qual arquivo os dados serão enviados. O atributo method='POST' define que os dados trafegarão de forma oculta e segura no corpo da requisição HTTP."
+},
+{
+arquivo: "Arquivo 1: index.html (Formulário no Navegador)",
+limparCaixa: false,
+linhaNova: `\n  <label for="cpf">Digite o CPF do Cliente:</label>`,
+preview:`<form onsubmit="return false;">
+    <label for="cpf">Digite o CPF do Cliente:</label>
+</form>`,
+texto:"Rótulo do Campo (Label): A tag <label> cria o texto indicativo na tela para instruir o usuário sobre qual informação ele deve preencher no campo a seguir."
+},
+{
+arquivo: "Arquivo 1: index.html (Formulário no Navegador)",
+limparCaixa: false,
+linhaNova: `\n  <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>`,
+preview:`<form onsubmit="return false;">
+    <label for="cpf">Digite o CPF do Cliente:</label>
+    <input type="text" id="cpf" value="123.456.789-00">
+</form>`,
+texto:"Campo de Entrada (Input): O atributo type='text' cria a caixa de digitação. O atributo name='cpf' é FUNDAMENTAL: ele será o identificador usado pelo script PHP para ler este dado. O atributo required impede o envio do formulário em branco."
+},
+{
+arquivo: "Arquivo 1: index.html (Formulário no Navegador)",
+limparCaixa: false,
+linhaNova: `\n  <button type="submit">Excluir Cliente</button>\n</form>`,
+preview:`<form onsubmit="return false;">
+    <label for="cpf">Digite o CPF do Cliente:</label>
+    <input type="text" id="cpf" value="123.456.789-00">
+    <button type="button" style="background:#2563eb;">Excluir Cliente</button>
+</form>`,
+texto:"Botão de Envio (Submit): Ao clicar neste botão, o navegador encerra a interação com 'index.html' e dispara uma requisição POST com o valor digitado diretamente para o segundo arquivo: 'excluir.php'."
+},
+
+// --- TRANSIÇÃO ---
+{
+arquivo: "Transição do Cliente para o Servidor",
+limparCaixa: true,
+linhaNova: `<!-- Os dados do formulário foram enviados! -->\n<!-- O navegador agora aguarda a resposta de 'excluir.php'... -->`,
+preview:`<div style="text-align:center; padding-top:40px;">\n    <p style="color:#0284c7; font-weight:bold;">⏳ Processando requisição no Servidor Web...</p>\n    <p>Dados enviados: <strong>cpf = "123.456.789-00"</strong></p>\n</div>`,
+texto:"Transição de Arquivo: O arquivo 'index.html' cumpriu seu papel de coletar a entrada do usuário. Agora o controle é transferido para o arquivo 'excluir.php' que é executado dentro do servidor web."
+},
+
+// --- ARQUIVO 2: PHP (excluir.php) ---
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: true,
+linhaNova: `<?php`,
+preview:`<em>[Servidor]: Iniciando o interpretador PHP...</em>`,
+texto:"Abertura da Tag PHP: O comando <?php avisa ao servidor Apache/Nginx que as linhas seguintes não são HTML simples, mas sim instruções de programação PHP que devem ser processadas."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n$conexao = new mysqli('localhost', 'root', 'senha123', 'sistema_db');`,
+preview:`<em>[Servidor]: Estabelecendo conexão com o MySQL...</em>`,
+texto:"Conexão com o Banco de Dados: Criamos a variável $conexao usando a classe 'mysqli'. Passamos 4 parâmetros: servidor (localhost), usuário (root), senha (senha123) e nome do banco de dados (sistema_db)."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n\n$cpf = $_POST['cpf'];`,
+preview:`<em>[Servidor]: Dado recuperado -> $cpf = "123.456.789-00"</em>`,
+texto:"Captura da Variável POST: A superglobal $_POST['cpf'] acessa o valor enviado pela tag <input name='cpf'> do formulário HTML e guarda dentro da variável $cpf no PHP."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n\n$sql_busca = "SELECT * FROM clientes WHERE cpf = '$cpf'";`,
+preview:`<em>[Servidor]: Consulta SQL de busca montada.</em>`,
+texto:"Montagem da Consulta (Etapa 1 - Busca): Antes de excluir qualquer registro do banco de dados, é uma boa prática consultar se ele realmente existe. Criamos a instrução SQL SELECT para filtrar pela coluna 'cpf'."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n$resultado = $conexao->query($sql_busca);`,
+preview:`<em>[Servidor]: Executando SELECT na tabela 'clientes'...</em>`,
+texto:"Execução do Comando SELECT: O método $conexao->query() envia o comando para o servidor MySQL. O resultado da busca fica armazenado na variável $resultado."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n\nif ($resultado->num_rows > 0) {`,
+preview:`<em>[Servidor]: Registro localizado no banco! (num_rows > 0)</em>`,
+texto:"Verificação de Existência: A propriedade $resultado->num_rows indica quantas linhas retornaram do banco. Se num_rows for maior que 0, significa que o CPF existe cadastrado."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n    $cliente = $resultado->fetch_assoc();`,
+preview:`<em>[Servidor]: Dados do cliente carregados na memória.</em>`,
+texto:"Extração dos Dados: O método fetch_assoc() converte o resultado do banco em um array associativo ($cliente). Assim conseguimos ler o nome, idade e outros campos do registro localizado."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n\n    $sql_delete = "DELETE FROM clientes WHERE cpf = '$cpf'";\n    $conexao->query($sql_delete);`,
+preview:`<em>[Servidor]: Executando comando DELETE no MySQL...</em>`,
+texto:"Instrução de Exclusão (Etapa 2 - DELETE): Preparamos e executamos o comando DELETE FROM especificando o filtro WHERE cpf = '$cpf' para garantir que apenas este cliente específico seja apagado."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n\n    echo "<h2 style='color:#16a34a;'>Cliente Excluído com Sucesso!</h2>";\n    echo "<p><strong>Registro removido do banco:</strong></p>";\n    echo "Nome: " . $cliente['nome'] . "<br>";\n    echo "CPF: " . $cliente['cpf'] . "<br>";\n}`,
+preview:`<h2 style="color:#16a34a;">Cliente Excluído com Sucesso!</h2><p><strong>Registro removido do banco:</strong></p>Nome: Carlos Silva<br>CPF: 123.456.789-00<br>`,
+texto:"Resposta em HTML (Echo): Usamos a instrução echo do PHP para devolver código HTML para o navegador do cliente, exibindo a confirmação e os dados que acabaram de ser apagados."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: ` else {\n    echo "<h2 style='color:#dc2626;'>Erro: Nenhum cliente encontrado com o CPF $cpf.</h2>";\n}`,
+preview:`<h2 style="color:#16a34a;">Cliente Excluído com Sucesso!</h2><p><strong>Registro removido do banco:</strong></p>Nome: Carlos Silva<br>CPF: 123.456.789-00<br>`,
+texto:"Tratamento de Exceção (Else): O bloco else define o que deve acontecer se o CPF não existir no banco. Evita erros no sistema e dá um feedback amigável ao usuário."
+},
+{
+arquivo: "Arquivo 2: excluir.php (Script no Servidor)",
+limparCaixa: false,
+linhaNova: `\n\n$conexao->close();\n?>`,
+preview:`<h2 style="color:#16a34a;">Cliente Excluído com Sucesso!</h2><p><strong>Registro removido do banco:</strong></p>Nome: Carlos Silva<br>CPF: 123.456.789-00<br>`,
+texto:"Encerramento do Script: O método $conexao->close() fecha a conexão com o banco de dados MySQL para liberar memória do servidor. A tag ?> encerra a execução do script PHP."
+}
+];
+
+let indice = 0;
+let modo = 'auto';
+let tempoPausa = 3000;
+let timerAtual = null;
+let emAnimacao = false;
+
+function atualizarRotuloTempo(val) {
+    tempoPausa = parseInt(val);
+    document.getElementById("labelTempo").innerText = (val / 1000).toFixed(1) + "s";
+}
+
+function setModo(novoModo) {
+    modo = novoModo;
+    document.getElementById("btnModoAuto").classList.toggle("active", modo === 'auto');
+    document.getElementById("btnModoManual").classList.toggle("active", modo === 'manual');
+    
+    atualizarBotoesNavegacao();
+
+    if (modo === 'auto' && !emAnimacao && indice < etapas.length) {
+        executarEtapaAtual();
+    }
+}
+
+function limparTimer() {
+    if (timerAtual) {
+        clearTimeout(timerAtual);
+        timerAtual = null;
+    }
+}
+
+function obterCodigoAteIndice(i) {
+    let codigoFinal = "";
+    for (let k = 0; k <= i; k++) {
+        if (etapas[k].limparCaixa) {
+            codigoFinal = etapas[k].linhaNova;
+        } else {
+            codigoFinal += etapas[k].linhaNova;
+        }
+    }
+    return codigoFinal;
+}
+
+function renderizarModoEstatico() {
+    let etapa = etapas[indice];
+    document.getElementById("painelNomeArquivo").innerText = etapa.arquivo;
+    
+    let codigoAnterior = "";
+    let base = 0;
+    for (let k = indice; k >= 0; k--) {
+        if (etapas[k].limparCaixa) {
+            base = k;
+            break;
+        }
+    }
+
+    for (let k = base; k < indice; k++) {
+        codigoAnterior += etapas[k].linhaNova;
+    }
+
+    let htmlCodigo = "";
+    if (codigoAnterior.length > 0) {
+        htmlCodigo += `<span class="linha-existente">${escaparHtml(codigoAnterior)}</span>`;
+    }
+    htmlCodigo += `<span class="linha-nova">${escaparHtml(etapa.linhaNova)}</span>`;
+
+    document.getElementById("codigo").innerHTML = htmlCodigo;
+    document.getElementById("preview").innerHTML = etapa.preview;
+
+    const divBox = document.getElementById("codigo");
+    divBox.scrollTop = divBox.scrollHeight;
+}
+
+function renderizarDigitoAcumulado(textoAnterior, textoNovoDigitado) {
+    let htmlCodigo = "";
+    if (textoAnterior.length > 0) {
+        htmlCodigo += `<span class="linha-existente">${escaparHtml(textoAnterior)}</span>`;
+    }
+    htmlCodigo += `<span class="linha-nova">${escaparHtml(textoNovoDigitado)}</span>`;
+
+    document.getElementById("codigo").innerHTML = htmlCodigo;
+    
+    const divBox = document.getElementById("codigo");
+    divBox.scrollTop = divBox.scrollHeight;
+}
+
+function escaparHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function escreverCodigoAcumulado(textoAnterior, textoNovo, pos, callback){
+    if (pos <= textoNovo.length){
+        let textoNovoParcial = textoNovo.substring(0, pos);
+        renderizarDigitoAcumulado(textoAnterior, textoNovoParcial);
+        timerAtual = setTimeout(() => {
+            escreverCodigoAcumulado(textoAnterior, textoNovo, pos + 1, callback);
+        }, 8);
+    } else {
+        callback();
+    }
+}
+
+function escreverExplicacao(palavras, pos, callback){
+    const spanTexto = document.getElementById("textoExp");
+    if (spanTexto && pos < palavras.length){
+        spanTexto.innerHTML += (pos === 0 ? "" : " ") + palavras[pos];
+        timerAtual = setTimeout(() => {
+            escreverExplicacao(palavras, pos + 1, callback);
+        }, 25);
+    } else {
+        if(callback) callback();
+    }
+}
+
+function executarEtapaAtual() {
+    limparTimer();
+    emAnimacao = true;
+    atualizarBotoesNavegacao();
+
+    let etapa = etapas[indice];
+    document.getElementById("painelNomeArquivo").innerText = etapa.arquivo;
+    document.getElementById("preview").innerHTML = etapa.preview;
+
+    const divExp = document.getElementById("explicacao");
+    divExp.style.display = "block";
+    divExp.innerHTML = `<span class="explicacao-titulo">Explicação Detalhada:</span><span id="textoExp" class="explicacao-texto"></span>`;
+
+    let codigoAnterior = "";
+    if (!etapa.limparCaixa) {
+        let base = 0;
+        for (let k = indice - 1; k >= 0; k--) {
+            if (etapas[k].limparCaixa) {
+                base = k;
+                break;
+            }
+        }
+        for (let k = base; k < indice; k++) {
+            codigoAnterior += etapas[k].linhaNova;
+        }
+    }
+
+    escreverCodigoAcumulado(codigoAnterior, etapa.linhaNova, 0, function() {
+        const palavras = etapa.texto.split(" ");
+        escreverExplicacao(palavras, 0, function() {
+            emAnimacao = false;
+            atualizarBotoesNavegacao();
+
+            if (modo === 'auto') {
+                if (indice < etapas.length - 1) {
+                    indice++;
+                    timerAtual = setTimeout(executarEtapaAtual, tempoPausa);
+                }
+            }
+        });
+    });
+}
+
+function avancarManual() {
+    if (emAnimacao) return;
+    if (modo === 'auto') {
+        setModo('manual');
+    }
+    if (indice < etapas.length - 1) {
+        indice++;
+        executarEtapaAtual();
+    }
+}
+
+function retroceder() {
+    limparTimer();
+    emAnimacao = false;
+    
+    if (indice > 0) {
+        indice--;
+        renderizarModoEstatico();
+        const divExp = document.getElementById("explicacao");
+        divExp.style.display = "block";
+        divExp.innerHTML = `<span class="explicacao-titulo">Explicação Detalhada:</span><span class="explicacao-texto">${etapas[indice].texto}</span>`;
+    }
+    atualizarBotoesNavegacao();
+}
+
+function reiniciar() {
+    limparTimer();
+    emAnimacao = false;
+    indice = 0;
+    document.getElementById("codigo").innerHTML = "";
+    document.getElementById("preview").innerHTML = "";
+    document.getElementById("explicacao").style.display = "none";
+    document.getElementById("explicacao").innerHTML = "";
+    executarEtapaAtual();
+}
+
+function atualizarBotoesNavegacao() {
+    document.getElementById("btnAnterior").disabled = (indice <= 0 || emAnimacao);
+    document.getElementById("btnProximo").disabled = (indice >= etapas.length - 1 || emAnimacao);
+}
+
+window.onload = function() {
+    reiniciar();
+};
+
+</script>
+
+</body>
+</html>
