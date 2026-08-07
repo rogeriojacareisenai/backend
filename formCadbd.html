@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Construção de Formulário HTML Passo a Passo</title>
+<title>Construção do Cadastro PHP e MySQL Passo a Passo</title>
 
 <style>
 * {
@@ -101,10 +101,10 @@ h2 {
     background-color: #020617 !important;
     border-left: 5px solid #38bdf8;
     padding: 20px;
-    min-height: 320px;
+    min-height: 380px;
     color: #a3e635 !important;
     font-family: Consolas, 'Courier New', monospace;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.6;
     white-space: pre-wrap;
     border-radius: 4px;
@@ -124,15 +124,16 @@ h2 {
     border-radius: 3px;
 }
 
-/* Área de Preview do Formulário (fundo claro para destacar o formulário sem CSS) */
+/* Área de Preview */
 .preview-box {
     background-color: #ffffff;
     color: #000000;
     padding: 20px;
-    min-height: 320px;
+    min-height: 380px;
     border-radius: 4px;
     border: 2px solid #38bdf8;
     overflow-y: auto;
+    font-family: Arial, sans-serif;
 }
 
 /* Caixa de Explicação */
@@ -203,15 +204,15 @@ footer {
 <body>
 
 <header>
-<h1>Formulário HTML de Cadastro</h1>
-<p>Animação interativa com visualização em tempo real do resultado final.</p>
+    <h1>Cadastro PHP com MySQL</h1>
+    <p>Animação interativa com visualização em tempo real da execução no servidor.</p>
 </header>
 
 <div class="container">
 
 <div class="box">
 
-<h2>1 - Construção Interativa</h2>
+<h2>1 - Construção Interativa do Script PHP</h2>
 
 <div class="controls-panel">
     <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
@@ -235,12 +236,12 @@ footer {
 
 <div class="grid-conteudo">
     <div>
-        <div class="painel-header">Código HTML</div>
+        <div class="painel-header">Código PHP (cadastro.php)</div>
         <div id="codigo" class="code"></div>
     </div>
     
     <div>
-        <div class="painel-header">Pré-Visualização (Navegador)</div>
+        <div class="painel-header">Resposta no Navegador</div>
         <div id="preview" class="preview-box"></div>
     </div>
 </div>
@@ -252,59 +253,61 @@ footer {
 </div>
 
 <footer>
-Estrutura HTML • Demonstração interativa acumulativa
+Estrutura PHP & MySQL • Demonstração interativa acumulativa
 </footer>
 
 <script>
 
 const etapas = [
 {
-codigo:`<h1>Cadastro de Informações</h1>`,
-texto:"Elemento &lt;h1&gt;: Tag de cabeçalho (heading) usada para definir o título principal visível da página ou da seção."
+codigo:`<?php`,
+preview:`<em>Aguardando processamento no servidor...</em>`,
+texto:"Tag de abertura &lt;?php&gt;: Indica ao servidor web que o código a seguir deve ser processado pela linguagem PHP."
 },
 {
-codigo:`<form action="cadastro.php" method="POST">`,
-texto:"Elemento &lt;form&gt;: Contêiner que agrupa os campos de entrada. O atributo 'action' define para qual arquivo ou URL os dados serão enviados (cadastro.php). O atributo 'method=POST' especifica que as informações serão enviadas no corpo da requisição HTTP, de forma oculta na URL."
+codigo:`\n$nome = $_POST['nome'];\n$idade = $_POST['idade'];\n$cpf = $_POST['cpf'];\n$endereco = $_POST['endereco'];`,
+preview:`<em>[Servidor]: Capturando dados enviados pelo formulário...</em>`,
+texto:"Captura via $_POST: Coleta as informações digitadas nos campos do formulário HTML enviadas pelo método POST."
 },
 {
-codigo:`    <label for="nome">Nome:</label>`,
-texto:"Elemento &lt;label&gt;: Rótulo de texto associado a um campo. O atributo 'for=nome' conecta este rótulo ao campo de entrada cujo 'id' seja 'nome', melhorando a acessibilidade."
+codigo:`\n\n$servidor = 'localhost';\n$usuario = 'root';\n$senha = 'Home@spSENAI2025!';\n$banco = 'sistema_db';`,
+preview:`<em>[Servidor]: Credenciais de acesso ao MySQL preparadas.</em>`,
+texto:"Variáveis de conexão: Define o endereço do servidor MySQL (localhost), usuário, senha e o banco de dados (sistema_db)."
 },
 {
-codigo:`    <input type="text" id="nome" name="nome"><br><br>`,
-texto:"Elemento &lt;input&gt;: Campo de inserção de dados. O atributo 'type=text' define um campo de texto de linha única. O atributo 'id' identifica o elemento no documento, e o atributo 'name=nome' define o nome da chave pela qual o PHP acessará este valor ($_POST['nome']). A tag &lt;br&gt; insere quebras de linha para organizar o layout."
+codigo:`\n\n$conexao = new mysqli($servidor, $usuario, $senha, $banco);`,
+preview:`<em>[Servidor]: Conectando ao MySQL...</em>`,
+texto:"Objeto mysqli: Abre uma nova conexão com o servidor MySQL utilizando a extensão MySQLi do PHP."
 },
 {
-codigo:`    <label for="cpf">CPF:</label>`,
-texto:"Elemento &lt;label&gt;: Cria o texto do rótulo para o campo de CPF. O atributo 'for=cpf' faz a ligação com o input de ID correspondente."
+codigo:`\nif ($conexao->connect_error) {\n    die('Falha na conexão: ' . $conexao->connect_error);\n}`,
+preview:`<em>[Servidor]: Conexão estabelecida com sucesso!</em>`,
+texto:"Validação da conexão: Se houver qualquer falha na autenticação ou banco, a função die() encerra a execução e exibe o erro."
 },
 {
-codigo:`    <input type="text" id="cpf" name="cpf"><br><br>`,
-texto:"Elemento &lt;input&gt;: Campo com 'type=text' configurado para receber o CPF. O atributo 'name=cpf' cria a variável de recebimento no servidor ($_POST['cpf'])."
+codigo:`\n\n$sql = "INSERT INTO clientes (nome, idade, cpf, endereco) VALUES ('$nome', $idade, '$cpf', '$endereco')";`,
+preview:`<em>[Servidor]: Comando SQL de inserção montado.</em>`,
+texto:"Instrução SQL INSERT: Prepara o comando SQL informando a tabela 'clientes', as colunas e os valores das variáveis a cadastrar."
 },
 {
-codigo:`    <label for="idade">Idade:</label>`,
-texto:"Elemento &lt;label&gt;: Cria o rótulo de identificação textual para o campo de idade do formulário."
+codigo:`\n\nif ($conexao->query($sql) === TRUE) {`,
+preview:`<em>[Servidor]: Executando gravação no banco de dados...</em>`,
+texto:"Método $conexao->query(): Envia o comando SQL para execução no banco MySQL. Retorna TRUE caso a gravação tenha sucesso."
 },
 {
-codigo:`    <input type="number" id="idade" name="idade"><br><br>`,
-texto:"Elemento &lt;input&gt;: O atributo 'type=number' restringe a entrada no campo para apenas valores numéricos e habilita setas de incremento/decremento no navegador. O atributo 'name=idade' envia o valor numérico para $_POST['idade']."
+codigo:`\n    echo "<h2>Cliente cadastrado com sucesso!</h2>";\n    echo "<p>Dados registrados:</p>";\n    echo "Nome: " . $nome . "<br>";\n    echo "Idade: " . $idade . " anos<br>";\n    echo "CPF: " . $cpf . "<br>";\n    echo "Endereço: " . $endereco . "<br>";`,
+preview:`<h2>Cliente cadastrado com sucesso!</h2><p>Dados registrados:</p>Nome: Carlos Silva<br>Idade: 28 anos<br>CPF: 123.456.789-00<br>Endereço: Rua Exemplo, 100<br>`,
+texto:"Exibição dos dados: Imprime o título de sucesso e lista na tela os dados do cliente recém-cadastrado."
 },
 {
-codigo:`    <label for="endereco">Endereço:</label>`,
-texto:"Elemento &lt;label&gt;: Define o texto descritivo referente ao campo de endereço residencial."
+codigo:`\n} else {\n    echo "Erro ao cadastrar: " . $conexao->error;\n}`,
+preview:`<h2>Cliente cadastrado com sucesso!</h2><p>Dados registrados:</p>Nome: Carlos Silva<br>Idade: 28 anos<br>CPF: 123.456.789-00<br>Endereço: Rua Exemplo, 100<br>`,
+texto:"Tratamento de exceções: Executado somente se houver falha ao gravar no banco, exibindo o erro retornado pelo MySQL."
 },
 {
-codigo:`    <input type="text" id="endereco" name="endereco"><br><br>`,
-texto:"Elemento &lt;input&gt;: Campo de texto ('type=text') para o endereço do usuário. O atributo 'name=endereco' identifica o dado para o PHP em $_POST['endereco']."
-},
-{
-codigo:`    <input type="submit" value="Enviar">`,
-texto:"Elemento &lt;input&gt; com 'type=submit': Transforma o elemento em um botão de envio de formulário. Ao ser clicado, ele dispara o envio de todos os dados dos campos com atributo 'name' para o destino definido em 'action'. O atributo 'value=Enviar' define o texto visível dentro do botão."
-},
-{
-codigo:`</form>`,
-texto:"Tag de fechamento &lt;/form&gt;: Indica o término da estrutura do formulário."
+codigo:`\n\n$conexao->close();\n?>`,
+preview:`<h2>Cliente cadastrado com sucesso!</h2><p>Dados registrados:</p>Nome: Carlos Silva<br>Idade: 28 anos<br>CPF: 123.456.789-00<br>Endereço: Rua Exemplo, 100<br>`,
+texto:"Fechamento da conexão: O método close() encerra o canal de comunicação ativo com o MySQL, liberando os recursos."
 }
 ];
 
@@ -340,24 +343,21 @@ function limparTimer() {
 
 function renderizarCodigoAcumulado(posCaractereAtual) {
     let htmlCodigo = "";
-    let htmlPreview = "";
     
     for (let i = 0; i <= indice; i++) {
         if (i < indice) {
             htmlCodigo += `<span class="linha">${escaparHtml(etapas[i].codigo)}</span>`;
-            htmlPreview += etapas[i].codigo;
         } else if (i === indice) {
             let textoAtual = etapas[i].codigo;
             if (posCaractereAtual !== undefined) {
                 textoAtual = textoAtual.substring(0, posCaractereAtual);
             }
             htmlCodigo += `<span class="linha linha-ativa">${escaparHtml(textoAtual)}</span>`;
-            htmlPreview += textoAtual;
         }
     }
     
     document.getElementById("codigo").innerHTML = htmlCodigo;
-    document.getElementById("preview").innerHTML = htmlPreview;
+    document.getElementById("preview").innerHTML = etapas[indice].preview;
 }
 
 function escaparHtml(str) {
@@ -372,7 +372,7 @@ function escreverCodigo(texto, pos, callback){
         renderizarCodigoAcumulado(pos);
         timerAtual = setTimeout(() => {
             escreverCodigo(texto, pos + 1, callback);
-        }, 20);
+        }, 15);
     } else {
         callback();
     }
@@ -384,7 +384,7 @@ function escreverExplicacao(palavras, pos, callback){
         spanTexto.innerHTML += (pos === 0 ? "" : " ") + palavras[pos];
         timerAtual = setTimeout(() => {
             escreverExplicacao(palavras, pos + 1, callback);
-        }, 50);
+        }, 40);
     } else {
         if(callback) callback();
     }
