@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta e Alteração Dinâmica: HTML + PHP + MySQL Passo a Passo</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+header {
+    background: linear-gradient(90deg, #1d4ed8, #0284c7);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+header h1 {
+    margin: 0 0 8px 0;
+    color: #ffffff;
+}
+
+header p {
+    margin: 0;
+    color: #e2e8f0;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+.box {
+    background: #1e293b;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid #334155;
+}
+
+h2 {
+    color: #38bdf8;
+    margin-top: 0;
+}
+
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #334155;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #f8fafc;
+}
+
+.grid-conteudo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 850px) {
+    .grid-conteudo {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.painel-header {
+    font-size: 16px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Área de Código */
+.code {
+    background-color: #020617 !important;
+    border-left: 5px solid #38bdf8;
+    padding: 20px;
+    min-height: 450px;
+    max-height: 580px;
+    color: #a3e635 !important;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    border-radius: 4px;
+    overflow-y: auto;
+}
+
+.linha-existente {
+    color: #a3e635 !important;
+}
+
+.linha-nova {
+    background-color: rgba(234, 179, 8, 0.25) !important;
+    color: #fef08a !important;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Área de Preview */
+.preview-box {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    min-height: 450px;
+    max-height: 580px;
+    border-radius: 4px;
+    border: 2px solid #38bdf8;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+}
+
+.preview-box label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.preview-box input[type="text"],
+.preview-box input[type="email"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.preview-box button {
+    background-color: #2563eb;
+    color: white !important;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Caixa de Explicação */
+.explicacao {
+    margin-top: 20px;
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.6;
+    border: 1px solid #334155;
+    display: none;
+}
+
+.explicacao-titulo {
+    color: #38bdf8 !important;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.explicacao-texto {
+    color: #f8fafc !important;
+}
+
+button {
+    background: #2563eb;
+    color: #ffffff !important;
+    border: none;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    background: #475569;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+button.active {
+    background: #0284c7;
+    border: 2px solid #38bdf8;
+}
+
+input[type="range"] {
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+    <h1>Consulta e Edição Integrada: HTML + PHP + MySQL</h1>
+    <p>Fluxo de busca (SELECT), carregamento dos dados no formulário e gravação (UPDATE).</p>
+</header>
+
+<div class="container">
+
+<div class="box">
+
+<h2>Demonstração Didática: Buscar -> Exibir -> Alterar</h2>
+
+<div class="controls-panel">
+    <button id="btnIniciar" onclick="reiniciar()">Reiniciar</button>
+    
+    <div class="control-group">
+        <button id="btnModoAuto" class="active" onclick="setModo('auto')">Automático</button>
+        <button id="btnModoManual" onclick="setModo('manual')">Manual</button>
+    </div>
+
+    <div class="control-group" id="grupoTempo">
+        <label for="rangeTempo">Pausa:</label>
+        <input type="range" id="rangeTempo" min="1000" max="6000" step="500" value="3000" oninput="atualizarRotuloTempo(this.value)">
+        <span id="labelTempo">3.0s</span>
+    </div>
+
+    <div class="control-group">
+        <button id="btnAnterior" onclick="retroceder()" disabled>← Voltar</button>
+        <button id="btnProximo" onclick="avancarManual()" disabled>Avançar →</button>
+    </div>
+</div>
+
+<div class="grid-conteudo">
+    <div>
+        <div id="painelNomeArquivo" class="painel-header">Arquivo 1: buscar.html</div>
+        <div id="codigo" class="code"></div>
+    </div>
+    
+    <div>
+        <div class="painel-header">Navegador / Resposta Visual</div>
+        <div id="preview" class="preview-box"></div>
+    </div>
+</div>
+
+<div id="explicacao" class="explicacao"></div>
+
+</div>
+
+</div>
+
+<footer>
+Guia Didático • Arquitetura Web Cliente-Servidor (Consulta e Alteração de Registros)
+</footer>
+
+<script>
+
+const etapas = [
+// --- ETAPA 1: BUSCAR.HTML ---
+{
+arquivo: "Arquivo 1: buscar.html (Formulário de Busca)",
+limparCaixa: true,
+linhaNova: `<form action="form_alterar.php" method="POST">`,
+preview:`<form onsubmit="return false;">
+    <p><em>[Aguardando a montagem do formulário de consulta...]</em></p>
+</form>`,
+texto:"Início da Busca: O usuário acessa a tela inicial para localizar o cadastro. O formulário usará o método POST para enviar a chave de consulta ao arquivo 'form_alterar.php'."
+},
+{
+arquivo: "Arquivo 1: buscar.html (Formulário de Busca)",
+limparCaixa: false,
+linhaNova: `\n  <label for="cpf">CPF do Cliente:</label>\n  <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>`,
+preview:`<form onsubmit="return false;">
+    <label for="cpf">CPF do Cliente:</label>
+    <input type="text" id="cpf" value="123.456.789-00">
+</form>`,
+texto:"Campo do Identificador: O usuário digita o CPF da pessoa cujos dados deseja consultar e alterar."
+},
+{
+arquivo: "Arquivo 1: buscar.html (Formulário de Busca)",
+limparCaixa: false,
+linhaNova: `\n\n  <button type="submit">Buscar Cadastro</button>\n</form>`,
+preview:`<form onsubmit="return false;">
+    <label for="cpf">CPF do Cliente:</label>
+    <input type="text" id="cpf" value="123.456.789-00">
+    <button type="button">Buscar Cadastro</button>
+</form>`,
+texto:"Envio da Pesquisa: Ao clicar em 'Buscar Cadastro', a solicitação é enviada ao servidor para pesquisar no banco de dados."
+},
+
+// --- TRANSIÇÃO PARA A CONSULTA ---
+{
+arquivo: "Transição: Processando a Consulta",
+limparCaixa: true,
+linhaNova: `<!-- Consultando CPF: 123.456.789-00 no banco de dados... -->`,
+preview:`<div style="text-align:center; padding-top:40px;">\n    <p style="color:#0284c7; font-weight:bold;">🔍 Buscando registro no servidor...</p>\n</div>`,
+texto:"Requisição Enviada: O servidor recebe o CPF fornecido e iniciará o script PHP para localizar os dados cadastrados."
+},
+
+// --- ETAPA 2: FORM_ALTERAR.PHP (CONSULTA E EXIBIÇÃO) ---
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: true,
+linhaNova: `<?php\n$conexao = new mysqli('localhost', 'root', 'senha123', 'sistema_db');\n$cpf = $_POST['cpf'];`,
+preview:`<em>[Servidor]: Conectando ao MySQL e recebendo CPF: 123.456.789-00...</em>`,
+texto:"Conexão e Recebimento: O PHP se conecta ao MySQL e resgata o CPF digitado na busca."
+},
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: false,
+linhaNova: `\n\n$sql = "SELECT * FROM clientes WHERE cpf = '$cpf'";\n$resultado = $conexao->query($sql);`,
+preview:`<em>[Servidor]: Executando instrução SELECT no MySQL...</em>`,
+texto:"Consulta SQL (SELECT): Realizamos a busca no banco de dados para recuperar todas as informações do cliente informado."
+},
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: false,
+linhaNova: `\n\nif ($resultado->num_rows > 0) {\n    $cliente = $resultado->fetch_assoc();\n?>`,
+preview:`<em>[Servidor]: Cadastro localizado com sucesso! Armazenando dados na variável $cliente...</em>`,
+texto:"Extração dos Dados: Se o cliente existir no banco (num_rows > 0), a função fetch_assoc() armazena os campos retornados em uma matriz PHP."
+},
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: false,
+linhaNova: `\n\n<form action="salvar_alteracao.php" method="POST">\n  <input type="hidden" name="cpf" value="<?php echo $cliente['cpf']; ?>">`,
+preview:`<form onsubmit="return false;">
+    <p style="color:#16a34a; font-weight:bold; margin-top:0;">✓ Cliente Encontrado!</p>
+    <input type="hidden" name="cpf" value="123.456.789-00">
+</form>`,
+texto:"Formulário de Edição (Campo Oculto): Abrimos um novo formulário apontando para 'salvar_alteracao.php'. Criamos um campo 'hidden' com o CPF para preservar a chave primária durante o envio."
+},
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: false,
+linhaNova: `\n\n  <label>Nome Atual:</label>\n  <input type="text" name="nome" value="<?php echo $cliente['nome']; ?>" required>`,
+preview:`<form onsubmit="return false;">
+    <p style="color:#16a34a; font-weight:bold; margin-top:0;">✓ Cliente Encontrado!</p>
+    <label>Nome Atual:</label>
+    <input type="text" id="nome" value="Carlos Eduardo Silva">
+</form>`,
+texto:"Preenchimento Automático do Nome: O valor vindo do banco ($cliente['nome']) é inserido diretamente no atributo value do campo input."
+},
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: false,
+linhaNova: `\n\n  <label>E-mail Atual:</label>\n  <input type="email" name="email" value="<?php echo $cliente['email']; ?>" required>`,
+preview:`<form onsubmit="return false;">
+    <p style="color:#16a34a; font-weight:bold; margin-top:0;">✓ Cliente Encontrado!</p>
+    <label>Nome Atual:</label>
+    <input type="text" id="nome" value="Carlos Eduardo Silva">
+    <label>E-mail Atual:</label>
+    <input type="email" id="email" value="carlos.antigo@email.com">
+</form>`,
+texto:"Preenchimento Automático do E-mail: O e-mail cadastrado ($cliente['email']) também é exibido nos campos para permitir a alteração."
+},
+{
+arquivo: "Arquivo 2: form_alterar.php (Consulta e Montagem)",
+limparCaixa: false,
+linhaNova: `\n\n  <button type="submit">Gravar Alterações</button>\n</form>\n<?php } else { echo "Cliente não localizado."; } ?>`,
+preview:`<form onsubmit="return false;">
+    <p style="color:#16a34a; font-weight:bold; margin-top:0;">✓ Cliente Encontrado!</p>
+    <label>Nome Atual:</label>
+    <input type="text" id="nome" value="Carlos Eduardo Silva">
+    <label>E-mail Atual (Altere aqui):</label>
+    <input type="email" id="email" value="carlos.novo@email.com">
+    <button type="button">Gravar Alterações</button>
+</form>`,
+texto:"Edição dos Dados pelo Usuário: Os dados do banco agora estão na tela. O usuário modifica os campos desejados (ex: altera o e-mail) e clica em 'Gravar Alterações'."
+},
+
+// --- TRANSIÇÃO PARA A GRAVAÇÃO ---
+{
+arquivo: "Transição: Envio das Alterações",
+limparCaixa: true,
+linhaNova: `<!-- Enviando novos dados modificados para salvar_alteracao.php... -->`,
+preview:`<div style="text-align:center; padding-top:40px;">\n    <p style="color:#0284c7; font-weight:bold;">⏳ Salvando alterações no Banco de Dados...</p>\n</div>`,
+texto:"Processamento no Servidor: Os dados atualizados são enviados para o script final que executará o comando UPDATE."
+},
+
+// --- ETAPA 3: SALVAR_ALTERACAO.PHP (UPDATE) ---
+{
+arquivo: "Arquivo 3: salvar_alteracao.php (Execução do Update)",
+limparCaixa: true,
+linhaNova: `<?php\n$conexao = new mysqli('localhost', 'root', 'senha123', 'sistema_db');\n\n$cpf = $_POST['cpf'];\n$novo_nome = $_POST['nome'];\n$novo_email = $_POST['email'];`,
+preview:`<em>[Servidor]: Coletando dados alterados via POST...</em>`,
+texto:"Recepção dos Dados Alterados: O script armazena o CPF e as novas informações que o usuário digitou no formulário."
+},
+{
+arquivo: "Arquivo 3: salvar_alteracao.php (Execução do Update)",
+limparCaixa: false,
+linhaNova: `\n\n$sql_update = "UPDATE clientes SET nome = '$novo_nome', email = '$novo_email' WHERE cpf = '$cpf'";`,
+preview:`<em>[Servidor]: Instrução UPDATE preparada com a cláusula WHERE...</em>`,
+texto:"Montagem da Instrução UPDATE: Definimos os novos valores nos campos 'nome' e 'email' onde o CPF corresponder ao cliente selecionado."
+},
+{
+arquivo: "Arquivo 3: salvar_alteracao.php (Execução do Update)",
+limparCaixa: false,
+linhaNova: `\n\nif ($conexao->query($sql_update) === TRUE) {\n    echo "<h2 style='color:#16a34a;'>Dados Atualizados com Sucesso!</h2>";\n    echo "<p><strong>Cadastro Final no Banco:</strong></p>";\n    echo "CPF: " . $cpf . "<br>";\n    echo "Nome: " . $novo_nome . "<br>";\n    echo "Novo E-mail: " . $novo_email . "<br>";\n}`,
+preview:`<h2 style="color:#16a34a;">Dados Atualizados com Sucesso!</h2><p><strong>Cadastro Final no Banco:</strong></p>CPF: 123.456.789-00<br>Nome: Carlos Eduardo Silva<br>Novo E-mail: carlos.novo@email.com<br>`,
+texto:"Atualização Concluída: O MySQL grava as alterações permanentemente e o PHP exibe a confirmação visual na tela com as informações gravadas."
+},
+{
+arquivo: "Arquivo 3: salvar_alteracao.php (Execução do Update)",
+limparCaixa: false,
+linhaNova: ` else {\n    echo "Erro ao atualizar: " . $conexao->error;\n}\n$conexao->close();\n?>`,
+preview:`<h2 style="color:#16a34a;">Dados Atualizados com Sucesso!</h2><p><strong>Cadastro Final no Banco:</strong></p>CPF: 123.456.789-00<br>Nome: Carlos Eduardo Silva<br>Novo E-mail: carlos.novo@email.com<br>`,
+texto:"Encerramento do Processo: A conexão com o banco de dados é finalizada com sucesso."
+}
+];
+
+let indice = 0;
+let modo = 'auto';
+let tempoPausa = 3000;
+let timerAtual = null;
+let emAnimacao = false;
+
+function atualizarRotuloTempo(val) {
+    tempoPausa = parseInt(val);
+    document.getElementById("labelTempo").innerText = (val / 1000).toFixed(1) + "s";
+}
+
+function setModo(novoModo) {
+    modo = novoModo;
+    document.getElementById("btnModoAuto").classList.toggle("active", modo === 'auto');
+    document.getElementById("btnModoManual").classList.toggle("active", modo === 'manual');
+    
+    atualizarBotoesNavegacao();
+
+    if (modo === 'auto' && !emAnimacao && indice < etapas.length) {
+        executarEtapaAtual();
+    }
+}
+
+function limparTimer() {
+    if (timerAtual) {
+        clearTimeout(timerAtual);
+        timerAtual = null;
+    }
+}
+
+function renderizarModoEstatico() {
+    let etapa = etapas[indice];
+    document.getElementById("painelNomeArquivo").innerText = etapa.arquivo;
+    
+    let codigoAnterior = "";
+    let base = 0;
+    for (let k = indice; k >= 0; k--) {
+        if (etapas[k].limparCaixa) {
+            base = k;
+            break;
+        }
+    }
+
+    for (let k = base; k < indice; k++) {
+        codigoAnterior += etapas[k].linhaNova;
+    }
+
+    let htmlCodigo = "";
+    if (codigoAnterior.length > 0) {
+        htmlCodigo += `<span class="linha-existente">${escaparHtml(codigoAnterior)}</span>`;
+    }
+    htmlCodigo += `<span class="linha-nova">${escaparHtml(etapa.linhaNova)}</span>`;
+
+    document.getElementById("codigo").innerHTML = htmlCodigo;
+    document.getElementById("preview").innerHTML = etapa.preview;
+
+    const divBox = document.getElementById("codigo");
+    divBox.scrollTop = divBox.scrollHeight;
+}
+
+function renderizarDigitoAcumulado(textoAnterior, textoNovoDigitado) {
+    let htmlCodigo = "";
+    if (textoAnterior.length > 0) {
+        htmlCodigo += `<span class="linha-existente">${escaparHtml(textoAnterior)}</span>`;
+    }
+    htmlCodigo += `<span class="linha-nova">${escaparHtml(textoNovoDigitado)}</span>`;
+
+    document.getElementById("codigo").innerHTML = htmlCodigo;
+    
+    const divBox = document.getElementById("codigo");
+    divBox.scrollTop = divBox.scrollHeight;
+}
+
+function escaparHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function escreverCodigoAcumulado(textoAnterior, textoNovo, pos, callback){
+    if (pos <= textoNovo.length){
+        let textoNovoParcial = textoNovo.substring(0, pos);
+        renderizarDigitoAcumulado(textoAnterior, textoNovoParcial);
+        timerAtual = setTimeout(() => {
+            escreverCodigoAcumulado(textoAnterior, textoNovo, pos + 1, callback);
+        }, 8);
+    } else {
+        callback();
+    }
+}
+
+function escreverExplicacao(palavras, pos, callback){
+    const spanTexto = document.getElementById("textoExp");
+    if (spanTexto && pos < palavras.length){
+        spanTexto.innerHTML += (pos === 0 ? "" : " ") + palavras[pos];
+        timerAtual = setTimeout(() => {
+            escreverExplicacao(palavras, pos + 1, callback);
+        }, 25);
+    } else {
+        if(callback) callback();
+    }
+}
+
+function executarEtapaAtual() {
+    limparTimer();
+    emAnimacao = true;
+    atualizarBotoesNavegacao();
+
+    let etapa = etapas[indice];
+    document.getElementById("painelNomeArquivo").innerText = etapa.arquivo;
+    document.getElementById("preview").innerHTML = etapa.preview;
+
+    const divExp = document.getElementById("explicacao");
+    divExp.style.display = "block";
+    divExp.innerHTML = `<span class="explicacao-titulo">Explicação Detalhada:</span><span id="textoExp" class="explicacao-texto"></span>`;
+
+    let codigoAnterior = "";
+    if (!etapa.limparCaixa) {
+        let base = 0;
+        for (let k = indice - 1; k >= 0; k--) {
+            if (etapas[k].limparCaixa) {
+                base = k;
+                break;
+            }
+        }
+        for (let k = base; k < indice; k++) {
+            codigoAnterior += etapas[k].linhaNova;
+        }
+    }
+
+    escreverCodigoAcumulado(codigoAnterior, etapa.linhaNova, 0, function() {
+        const palavras = etapa.texto.split(" ");
+        escreverExplicacao(palavras, 0, function() {
+            emAnimacao = false;
+            atualizarBotoesNavegacao();
+
+            if (modo === 'auto') {
+                if (indice < etapas.length - 1) {
+                    indice++;
+                    timerAtual = setTimeout(executarEtapaAtual, tempoPausa);
+                }
+            }
+        });
+    });
+}
+
+function avancarManual() {
+    if (emAnimacao) return;
+    if (modo === 'auto') {
+        setModo('manual');
+    }
+    if (indice < etapas.length - 1) {
+        indice++;
+        executarEtapaAtual();
+    }
+}
+
+function retroceder() {
+    limparTimer();
+    emAnimacao = false;
+    
+    if (indice > 0) {
+        indice--;
+        renderizarModoEstatico();
+        const divExp = document.getElementById("explicacao");
+        divExp.style.display = "block";
+        divExp.innerHTML = `<span class="explicacao-titulo">Explicação Detalhada:</span><span class="explicacao-texto">${etapas[indice].texto}</span>`;
+    }
+    atualizarBotoesNavegacao();
+}
+
+function reiniciar() {
+    limparTimer();
+    emAnimacao = false;
+    indice = 0;
+    document.getElementById("codigo").innerHTML = "";
+    document.getElementById("preview").innerHTML = "";
+    document.getElementById("explicacao").style.display = "none";
+    document.getElementById("explicacao").innerHTML = "";
+    executarEtapaAtual();
+}
+
+function atualizarBotoesNavegacao() {
+    document.getElementById("btnAnterior").disabled = (indice <= 0 || emAnimacao);
+    document.getElementById("btnProximo").disabled = (indice >= etapas.length - 1 || emAnimacao);
+}
+
+window.onload = function() {
+    reiniciar();
+};
+
+</script>
+
+</body>
+</html>
