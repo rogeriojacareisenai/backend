@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Execução SQL Query e Simulação do Laço While com Highlight</title>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #0f172a;
+        color: #f8fafc;
+        padding: 20px;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #334155;
+    }
+
+    header h1 {
+        color: #38bdf8;
+        margin-bottom: 5px;
+    }
+
+    header p {
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    @media (min-width: 850px) {
+        .container {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .card {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+        color: #38bdf8;
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 0;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .filter-section {
+        background-color: #020617;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        border: 1px solid #334155;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .filter-section div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-section label {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 5px;
+    }
+
+    select {
+        width: 100%;
+        padding: 8px 12px;
+        background-color: #1e293b;
+        border: 1px solid #475569;
+        color: #f8fafc;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+    .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    button {
+        background-color: #10b981;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.2s;
+    }
+
+    button:hover {
+        background-color: #059669;
+    }
+
+    button:disabled {
+        background-color: #475569;
+        cursor: not-allowed;
+    }
+
+    button.btn-reset {
+        background-color: #dc2626;
+    }
+
+    button.btn-reset:hover {
+        background-color: #b91c1c;
+    }
+
+    /* Container da Memória do Result Set */
+    .result-set {
+        border: 2px dashed #0284c7;
+        background-color: #020617;
+        border-radius: 6px;
+        padding: 10px;
+        min-height: 320px;
+        position: relative;
+    }
+
+    .row-item {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 8px;
+        transition: all 0.4s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        position: relative;
+    }
+
+    .row-item.removed {
+        opacity: 0;
+        transform: translateX(100px);
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border: none;
+        overflow: hidden;
+    }
+
+    .row-item.current-pointer {
+        border-color: #f59e0b;
+        background-color: rgba(245, 158, 11, 0.2);
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .row-item.found-target {
+        border-color: #10b981;
+        background-color: rgba(16, 185, 129, 0.25);
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .pointer-badge {
+        background-color: #f59e0b;
+        color: #020617;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        display: none;
+    }
+
+    .row-item.current-pointer .pointer-badge {
+        display: inline-block;
+    }
+
+    .row-item.found-target .pointer-badge {
+        display: inline-block;
+        background-color: #10b981;
+        color: #ffffff;
+    }
+
+    .php-output {
+        background-color: #020617;
+        border-left: 4px solid #a3e635;
+        padding: 15px;
+        border-radius: 4px;
+        font-family: Consolas, 'Courier New', monospace;
+        color: #a3e635;
+        font-size: 13px;
+        min-height: 140px;
+        white-space: pre-wrap;
+    }
+
+    .explanation-box {
+        background-color: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        padding: 15px;
+        margin-top: 15px;
+        color: #e2e8f0;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .explanation-box span {
+        color: #38bdf8;
+        font-weight: bold;
+    }
+
+    /* Estilização e Highlight de Linhas no Código PHP */
+    .code-block {
+        background-color: #020617;
+        padding: 8px 0;
+        border-radius: 6px;
+        font-family: Consolas, monospace;
+        font-size: 12px;
+        color: #e2e8f0;
+        margin-bottom: 15px;
+        border: 1px solid #334155;
+        line-height: 1.6;
+    }
+
+    .code-line {
+        padding: 2px 12px;
+        transition: background-color 0.2s ease, border-left 0.2s ease;
+        border-left: 4px solid transparent;
+    }
+
+    /* Classes de Highlight */
+    .code-line.active-while {
+        background-color: rgba(245, 158, 11, 0.25);
+        border-left-color: #f59e0b;
+    }
+
+    .code-line.active-if {
+        background-color: rgba(56, 189, 248, 0.25);
+        border-left-color: #38bdf8;
+    }
+
+    .code-line.active-found {
+        background-color: rgba(16, 185, 129, 0.3);
+        border-left-color: #10b981;
+    }
+
+    .code-keyword { color: #f43f5e; }
+    .code-var { color: #38bdf8; }
+    .code-string { color: #a3e635; }
+    .code-comment { color: #64748b; }
+
+    /* Caixa da Query SQL */
+    .sql-status {
+        background-color: #020617;
+        border-left: 4px solid #38bdf8;
+        padding: 10px 12px;
+        font-family: Consolas, monospace;
+        font-size: 12px;
+        color: #38bdf8;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+
+    .sql-status.executing {
+        border-left-color: #f59e0b;
+        color: #f59e0b;
+    }
+
+    .sql-status.success {
+        border-left-color: #10b981;
+        color: #10b981;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Execução SQL Query e Simulação de Laço com Highlight</h1>
+    <p>O PHP executa o <code>while</code> iluminando cada linha do código em tempo real durante a busca</p>
+</header>
+
+<div class="container">
+
+    <!-- LADO ESQUERDO: EXECUÇÃO DA QUERY E RESULT SET -->
+    <div class="card">
+        <div class="card-title">
+            <span>1. Execução no MySQL</span>
+            <span style="font-size: 12px; color: #94a3b8;">$conexao->query()</span>
+        </div>
+
+        <div class="filter-section">
+            <div>
+                <label for="selectAlvo">Registro Alvo (ID):</label>
+                <select id="selectAlvo" onchange="reiniciarSimulacao()">
+                    <option value="1">ID 1 - Ana Souza (1ª linha)</option>
+                    <option value="3">ID 3 - Beatriz Lima (3ª linha)</option>
+                    <option value="5" selected>ID 5 - Eduardo Rocha (5ª linha)</option>
+                    <option value="7">ID 7 - Gabriela Castro (7ª linha)</option>
+                    <option value="99" style="color: #f43f5e; font-weight: bold;">ID 99 - Inexistente (Não Encontrado)</option>
+                </select>
+            </div>
+            <div>
+                <label for="selectVelocidade">Delay por Passo:</label>
+                <select id="selectVelocidade">
+                    <option value="800">Rápido (0.8s)</option>
+                    <option value="1500" selected>Médio (1.5s)</option>
+                    <option value="2500">Lento (2.5s)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="btnStart" onclick="iniciarBuscaAutomatica()">► Executar Query e Buscar</button>
+            <button class="btn-reset" onclick="reiniciarSimulacao()">Reiniciar</button>
+        </div>
+
+        <!-- Status da Query SQL -->
+        <div id="sqlStatus" class="sql-status">
+            $sql = "SELECT * FROM usuarios";
+        </div>
+
+        <div class="result-set" id="resultSetContainer">
+            <!-- As linhas serão inseridas dinamicamente após a Query -->
+        </div>
+    </div>
+
+    <!-- LADO DIREITO: PROCESSAMENTO NO PHP COM HIGHLIGHT DE CÓDIGO -->
+    <div class="card">
+        <div class="card-title">
+            <span>2. Código PHP em Execução</span>
+            <span style="font-size: 12px; color: #94a3b8;">fetch_assoc()</span>
+        </div>
+
+        <div class="code-block">
+            <div id="line-sql" class="code-line"><span class="code-var">$sql</span> = <span class="code-string">"SELECT * FROM usuarios"</span>;</div>
+            <div id="line-query" class="code-line"><span class="code-var">$resultado</span> = <span class="code-var">$conexao</span>->query(<span class="code-var">$sql</span>);</div>
+            <div id="line-while" class="code-line"><span class="code-keyword">while</span> (<span class="code-var">$linha</span> = <span class="code-var">$resultado</span>->fetch_assoc()) {</div>
+            <div id="line-if" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (<span class="code-var">$linha</span>[<span class="code-string">'id'</span>] == <span class="code-var" id="codeTargetId">5</span>) {</div>
+            <div id="line-found" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">echo</span> <span class="code-string">"ENCONTRADO!"</span>;</div>
+            <div id="line-break" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">break</span>; <span class="code-comment">// Interrompe a execução</span></div>
+            <div id="line-closeif" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+            <div id="line-closewhile" class="code-line">}</div>
+        </div>
+
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">DADO EXTRAÍDO PARA <strong>$linha</strong>:</div>
+        <div id="phpOutput" class="php-output">// Clique em "Executar Query e Buscar"...</div>
+
+        <div class="explanation-box" id="explanationText">
+            <span>Aguardando início:</span> Ao iniciar, o código à esquerda e acima mostrará em tempo real qual linha do PHP está sendo executada.
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const bancoOriginal = [
+        { id: "1", nome: "Ana Souza", email: "ana@email.com" },
+        { id: "2", nome: "Carlos Eduardo", email: "carlos@email.com" },
+        { id: "3", nome: "Beatriz Lima", email: "beatriz@email.com" },
+        { id: "4", nome: "Daniel Alves", email: "daniel@email.com" },
+        { id: "5", nome: "Eduardo Rocha", email: "eduardo@email.com" },
+        { id: "6", nome: "Fernanda Melo", email: "fernanda@email.com" },
+        { id: "7", nome: "Gabriela Castro", email: "gabriela@email.com" },
+        { id: "8", nome: "Heitor Pereira", email: "heitor@email.com" }
+    ];
+
+    let ponteiroIndex = -1;
+    let timerId = null;
+
+    function renderizarResultSet() {
+        const container = document.getElementById('resultSetContainer');
+        container.innerHTML = '<div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">MEMÓRIA DO RESULT SET ($resultado):</div>';
+
+        bancoOriginal.forEach((item, index) => {
+            container.innerHTML += `
+                <div id="row-${index}" class="row-item">
+                    <span class="pointer-badge" id="badge-${index}">PONTEIRO</span>
+                    <div><strong>ID: ${item.id}</strong> | ${item.nome} (${item.email})</div>
+                </div>
+            `;
+        });
+    }
+
+    function limparHighlights() {
+        document.querySelectorAll('.code-line').forEach(el => {
+            el.className = 'code-line';
+        });
+    }
+
+    function passoFetch() {
+        ponteiroIndex++;
+        const targetId = document.getElementById('selectAlvo').value;
+        const btnStart = document.getElementById('btnStart');
+        const phpOutput = document.getElementById('phpOutput');
+        const explanationText = document.getElementById('explanationText');
+
+        // Limpa destaques anteriores de código
+        limparHighlights();
+
+        // Se passamos por uma linha anterior que não era o alvo, ela é removida da memória
+        if (ponteiroIndex > 0) {
+            const linhaAnterior = document.getElementById(`row-${ponteiroIndex - 1}`);
+            if (linhaAnterior) {
+                linhaAnterior.classList.remove('current-pointer');
+                linhaAnterior.classList.add('removed');
+            }
+        }
+
+        if (ponteiroIndex < bancoOriginal.length) {
+            const item = bancoOriginal[ponteiroIndex];
+            const linhaAtual = document.getElementById(`row-${ponteiroIndex}`);
+
+            // 1. Destaque na linha do WHILE (Extracao)
+            document.getElementById('line-while').classList.add('active-while');
+
+            // Atualiza a variável $linha no PHP
+            phpOutput.innerText = `$linha = Array (\n    ["id"] => "${item.id}"\n    ["nome"] => "${item.nome}"\n    ["email"] => "${item.email}"\n);`;
+
+            // Pequeno delay interno para simular a ida do WHILE para a linha do IF
+            setTimeout(() => {
+                limparHighlights();
+                document.getElementById('line-if').classList.add('active-if');
+
+                // VERIFICAÇÃO SE É O REGISTRO DESEJADO
+                if (item.id === targetId) {
+                    clearInterval(timerId);
+                    timerId = null;
+
+                    // Destaque nas linhas de SUCESSO (echo e break)
+                    setTimeout(() => {
+                        limparHighlights();
+                        document.getElementById('line-found').classList.add('active-found');
+                        document.getElementById('line-break').classList.add('active-found');
+
+                        linhaAtual.classList.remove('current-pointer');
+                        linhaAtual.classList.add('found-target');
+                        document.getElementById(`badge-${ponteiroIndex}`).innerText = 'ALVO ENCONTRADO (BREAK)';
+                        btnStart.disabled = true;
+
+                        explanationText.innerHTML = `<span style="color: #10b981;">✓ REGISTRO ENCONTRADO! BUSCA INTERROMPIDA!</span><br>O ponteiro chegou ao <strong>ID ${item.id} (${item.nome})</strong>. A condição <code>if ($linha['id'] == ${targetId})</code> foi verdadeira. O <code>break</code> foi acionado e o laço foi encerrado.`;
+                    }, parseInt(document.getElementById('selectVelocidade').value) / 3);
+
+                } else {
+                    // SE NÃO É O ALVO
+                    linhaAtual.classList.add('current-pointer');
+
+                    explanationText.innerHTML = `<span>Executando Laço (Passo ${ponteiroIndex + 1}):</span> O <code>while</code> leu o <strong>ID ${item.id}</strong>. O <code>if</code> testou o valor e retornou <strong>falso</strong>. O laço avançará para a próxima iteração...`;
+                }
+            }, parseInt(document.getElementById('selectVelocidade').value) / 3);
+
+        } else {
+            // FIM DA TABELA SEM ENCONTRAR (NÃO ENCONTRADO)
+            clearInterval(timerId);
+            timerId = null;
+
+            if (bancoOriginal.length > 0) {
+                const ultimaLinha = document.getElementById(`row-${bancoOriginal.length - 1}`);
+                if (ultimaLinha) {
+                    ultimaLinha.classList.remove('current-pointer');
+                    ultimaLinha.classList.add('removed');
+                }
+            }
+
+            limparHighlights();
+            document.getElementById('line-while').classList.add('active-while');
+            phpOutput.innerText = `$linha = NULL; // (Retornou NULL - Falso no While)`;
+            btnStart.disabled = true;
+
+            explanationText.innerHTML = `<span style="color: #f43f5e;">✕ REGISTRO NÃO ENCONTRADO!</span><br> O <code>fetch_assoc()</code> não encontrou mais linhas e retornou <strong>NULL</strong>. A condição do <code>while</code> se tornou falsa e a execução saiu do laço.`;
+        }
+    }
+
+    function iniciarBuscaAutomatica() {
+        document.getElementById('btnStart').disabled = true;
+        document.getElementById('selectAlvo').disabled = true;
+        
+        const sqlStatus = document.getElementById('sqlStatus');
+        const delay = parseInt(document.getElementById('selectVelocidade').value);
+
+        limparHighlights();
+        document.getElementById('line-sql').classList.add('active-if');
+
+        sqlStatus.className = "sql-status executing";
+        sqlStatus.innerHTML = `> Enviando Query: SELECT * FROM usuarios...`;
+
+        setTimeout(() => {
+            document.getElementById('line-sql').classList.remove('active-if');
+            document.getElementById('line-query').classList.add('active-while');
+
+            sqlStatus.className = "sql-status success";
+            sqlStatus.innerHTML = `✓ Query executada com sucesso! Result Set gerado (${bancoOriginal.length} registros).`;
+
+            setTimeout(() => {
+                passoFetch();
+                if (ponteiroIndex < bancoOriginal.length && bancoOriginal[ponteiroIndex].id !== document.getElementById('selectAlvo').value) {
+                    timerId = setInterval(passoFetch, delay);
+                }
+            }, 600);
+
+        }, 600);
+    }
+
+    function reiniciarSimulacao() {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+        
+        ponteiroIndex = -1;
+        const targetId = document.getElementById('selectAlvo').value;
+        document.getElementById('codeTargetId').innerText = targetId;
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('selectAlvo').disabled = false;
+        
+        limparHighlights();
+
+        const sqlStatus = document.getElementById('sqlStatus');
+        sqlStatus.className = "sql-status";
+        sqlStatus.innerHTML = `$sql = "SELECT * FROM usuarios";`;
+
+        document.getElementById('phpOutput').innerText = '// Clique em "Executar Query e Buscar"...';
+        
+        document.getElementById('explanationText').innerHTML = `<span>Aguardando início:</span> Clique em <strong>Executar Query e Buscar</strong> para acompanhar visualmente a iluminação das linhas do código durante a execução do laço.`;
+
+        renderizarResultSet();
+    }
+
+    // Inicialização
+    renderizarResultSet();
+    reiniciarSimulacao();
+</script>
+
+</body>
+</html>
