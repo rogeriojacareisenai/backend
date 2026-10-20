@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação de Programação Orientada a Objetos (POO)</title>
+    <!-- Tailwind CSS para design ágil e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter e Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Biblioteca html2canvas para gerar a imagem PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        devdark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155',
+                            text: '#f8fafc'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .glass-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- CABEÇALHO DA APLICAÇÃO -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 glass-card">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-brand-600 to-indigo-500 p-2.5 rounded-xl text-white shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-cubes text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl tracking-tight text-white flex items-center gap-2">
+                        POO Master <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">v2.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Avaliação Conceitual de Programação Orientada a Objetos</p>
+                </div>
+            </div>
+
+            <!-- Informações do Usuário (Quando logado) -->
+            <div id="header-user-info" class="hidden items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <p id="header-user-name" class="text-sm font-semibold text-slate-200">Desenvolvedor</p>
+                    <p class="text-xs text-brand-400 font-mono">Em Sessão</p>
+                </div>
+                <div class="relative group cursor-pointer" onclick="openProfileModal()">
+                    <canvas id="header-avatar-canvas" width="40" height="40" class="rounded-full border-2 border-brand-500 shadow-sm"></canvas>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow">
+
+        <!-- BLOQUEIO DE TENTATIVAS EXCEDIDAS -->
+        <section id="sec-blocked" class="hidden animate-fade-in">
+            <div class="bg-slate-800 border border-rose-800/80 rounded-2xl p-8 text-center space-y-4 shadow-2xl">
+                <div class="inline-flex p-4 rounded-full bg-rose-950/80 text-rose-400 border border-rose-700">
+                    <i class="fa-solid fa-lock text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Tentativas Esgotadas!</h2>
+                <p class="text-slate-300 text-sm max-w-md mx-auto">
+                    Você já realizou o número máximo de <strong>3 tentativas permitidas</strong> para esta avaliação. A aplicação não pode mais ser executada neste dispositivo.
+                </p>
+                <div class="pt-2">
+                    <span class="inline-block px-4 py-2 bg-slate-900 rounded-lg text-xs font-mono text-rose-400 border border-slate-700">
+                        Status: Limite Atingido (3/3)
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 1: TELA DE LOGIN / INÍCIO DA SESSÃO -->
+        <section id="sec-login" class="block animate-fade-in">
+            <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="max-w-2xl mx-auto text-center space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-700/60 border border-slate-600 text-slate-300 text-xs font-mono mb-2">
+                        <i class="fa-solid fa-code text-brand-400"></i> POO :: Quiz & Assessment
+                    </div>
+
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                        Teste seus conhecimentos em <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-indigo-300 to-purple-400">POO</span>
+                    </h2>
+
+                    <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                        Esta avaliação aborda os pilares de POO. Você terá <span class="text-amber-400 font-bold">60 segundos por questão</span> e no máximo <span class="text-brand-400 font-bold">3 tentativas</span>.
+                    </p>
+
+                    <!-- GERADOR DE PERFIL / SESSÃO -->
+                    <div class="bg-slate-900/90 border border-slate-700 p-6 rounded-xl text-left space-y-4 shadow-inner">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-id-card text-brand-400"></i> Iniciar Sessão do Aluno
+                            </h3>
+                            <span id="attempts-badge" class="text-xs font-mono px-2.5 py-1 rounded-md bg-brand-950 text-brand-300 border border-brand-800">
+                                Tentativas: 0/3
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                            <div class="flex flex-col items-center justify-center p-3 bg-slate-800/80 rounded-lg border border-slate-700/60">
+                                <label class="text-xs text-slate-400 mb-2 font-mono">Avatar Personalizado</label>
+                                <canvas id="login-avatar-canvas" width="80" height="80" class="rounded-xl border-2 border-brand-500/50 shadow-md mb-3 bg-slate-950"></canvas>
+                                <button type="button" id="btn-generate-avatar" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 font-mono px-3 py-1.5 rounded-lg border border-slate-600 transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-brand-400"></i> Gerar IA
+                                </button>
+                            </div>
+
+                            <div class="md:col-span-2 space-y-3">
+                                <div>
+                                    <label for="student-name" class="block text-xs font-medium text-slate-300 mb-1">Nome Completo / Identificação</label>
+                                    <input type="text" id="student-name" placeholder="Ex: Ana Silva - Dev" value="Dev Estudante" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Tema Visual do Banner</label>
+                                    <select id="banner-style" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-brand-500">
+                                        <option value="matrix">Matrix Code (Verde Cyber)</option>
+                                        <option value="gradient" selected>Gradiente Tech (Azul & Roxo)</option>
+                                        <option value="minimal">Minimalista Dark</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-start-quiz" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3 text-base mx-auto">
+                        <i class="fa-solid fa-play"></i> Iniciar Avaliação Agora
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: EXECUÇÃO DO QUIZ -->
+        <section id="sec-quiz" class="hidden animate-fade-in">
+            <div id="quiz-student-banner" class="mb-6 p-4 rounded-xl border border-slate-700 relative overflow-hidden flex items-center justify-between shadow-md">
+                <canvas id="quiz-banner-canvas" class="absolute inset-0 w-full h-full object-cover -z-10 opacity-40"></canvas>
+                <div class="flex items-center gap-3 z-10">
+                    <canvas id="quiz-header-avatar" width="48" height="48" class="rounded-xl border-2 border-brand-400 shadow"></canvas>
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider font-mono">Aluno em Avaliação:</span>
+                        <h3 id="quiz-student-display-name" class="font-bold text-slate-100 text-base">Desenvolvedor</h3>
+                    </div>
+                </div>
+                
+                <!-- CRONÔMETRO DE 60 SEGUNDOS POR QUESTÃO -->
+                <div class="z-10 font-mono text-sm font-bold bg-amber-950/90 text-amber-300 px-4 py-2 rounded-xl border border-amber-600/60 flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-hourglass-half animate-pulse text-amber-400"></i>
+                    <span>Tempo: <span id="timer-display" class="text-lg">60</span>s</span>
+                </div>
+            </div>
+
+            <!-- BARRA DE PROGRESSO -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 mb-6 shadow-md">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="progress-text" class="text-xs font-mono font-semibold text-brand-400">Questão 1 de 10</span>
+                    <span id="answered-count-text" class="text-xs font-mono text-slate-400">0 respondidas</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                    <div id="progress-bar" class="bg-gradient-to-r from-brand-500 to-indigo-500 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-700/60 flex flex-wrap gap-2 justify-center" id="question-dots-container"></div>
+            </div>
+
+            <!-- CARD DA QUESTÃO ATUAL -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-xl relative">
+                <div class="mb-4 flex items-center justify-between">
+                    <span id="question-category" class="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-md bg-indigo-950/80 text-indigo-300 border border-indigo-800/50">
+                        <i class="fa-solid fa-bookmark text-indigo-400"></i> Conceito: Encapsulamento
+                    </span>
+                    <span class="text-xs text-amber-400/90 font-mono flex items-center gap-1">
+                        <i class="fa-regular fa-clock"></i> Limite: 60s
+                    </span>
+                </div>
+
+                <h3 id="question-text" class="text-lg md:text-xl font-bold text-slate-100 mb-6 leading-relaxed">
+                    Carregando pergunta...
+                </h3>
+
+                <div id="options-container" class="space-y-3 mb-8"></div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-slate-700/80">
+                    <button id="btn-prev" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 font-semibold rounded-xl transition text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Anterior
+                    </button>
+
+                    <div class="flex gap-3">
+                        <button id="btn-next" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition text-sm flex items-center gap-2 shadow-lg shadow-brand-600/20">
+                            Próxima <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <button id="btn-finish" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition text-sm flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+                            <i class="fa-solid fa-check-double"></i> Finalizar Avaliação
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 3: TELA DE RESULTADOS & GABARITO COMENTADO -->
+        <section id="sec-results" class="hidden animate-fade-in">
+            <div class="space-y-6">
+
+                <!-- ÁREA CAPTURADA PARA O PNG -->
+                <div id="result-capture-area" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+                    <div id="result-status-bar" class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+
+                    <div class="text-center space-y-4 mb-8">
+                        <div class="inline-flex p-3 rounded-2xl bg-slate-900/80 border border-slate-700 text-brand-400 mb-1">
+                            <i id="result-icon" class="fa-solid fa-award text-3xl"></i>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white">Resultado da Avaliação</h2>
+                        <p id="result-student-info" class="text-sm text-slate-300 font-mono">Aluno: Dev | Data: 20/10/2026</p>
+                    </div>
+
+                    <!-- DASHBOARD DE MÉTRICAS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                        <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl text-center">
+                            <span class="text-xs text-slate-400 font-mono uppercase">Acertos</span>
+                            <p id="res-correct" class="text-3xl font-extrabold text-emerald-400 mt-1">0</p>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl text-center">
+                            <span class="text-xs text-slate-400 font-mono uppercase">Erros</span>
+                            <p id="res-wrong" class="text-3xl font-extrabold text-rose-400 mt-1">0</p>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl text-center">
+                            <span class="text-xs text-slate-400 font-mono uppercase">Aproveitamento</span>
+                            <p id="res-percentage" class="text-3xl font-extrabold text-brand-400 mt-1">0%</p>
+                        </div>
+                    </div>
+
+                    <!-- MENSAGEM DE FEEDBACK PERSONALIZADA -->
+                    <div id="feedback-box" class="p-4 rounded-xl border mb-6 text-sm text-center font-medium"></div>
+
+                    <!-- BOTÕES DE AÇÃO: EXPORTAR PNG E REFAZER -->
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button id="btn-download-png" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-image"></i> Salvar Resultado em PNG
+                        </button>
+                        <button id="btn-restart" class="px-6 py-3.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Nova Tentativa
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GABARITO COMENTADO -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-xl">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-brand-400"></i> Gabarito Comentado Detalhado
+                        </h3>
+                        <span class="text-xs font-mono text-slate-400">Revisão Conceitual</span>
+                    </div>
+
+                    <div id="feedback-list-container" class="space-y-6"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- RODAPÉ DA APLICAÇÃO -->
+    <footer class="border-t border-slate-800 py-6 bg-slate-950 text-slate-500 text-xs text-center">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>POO Master &copy; 2026 - Avaliação de Conceitos de Programação Orientada a Objetos.</p>
+            <p class="font-mono">Desenvolvido com HTML5, Tailwind CSS e Vanilla JavaScript</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPT DE LÓGICA DA APLICAÇÃO -->
+    <script>
+        const MAX_ATTEMPTS = 3;
+        const QUESTION_TIMEOUT = 60; // Tempo em segundos por questão
+
+        const RAW_QUESTIONS_BANK = [
+            {
+                id: 1,
+                category: "Classe",
+                question: "O que define conceitualmente uma Classe no paradigma de Programação Orientada a Objetos?",
+                options: [
+                    "Um modelo ou molde abstrato que define as características (atributos) e comportamentos (métodos) de futuros objetos.",
+                    "Uma variável global destinada apenas ao armazenamento de dados numéricos e lógicos do programa.",
+                    "Uma rotina de execução direta que substitui o uso de funções tradicionais na linguagem C.",
+                    "Um banco de dados em memória utilizado para armazenar os registros da aplicação."
+                ],
+                answerIndex: 0,
+                explanation: "Uma Classe funciona como uma planta ou molde conceitual a partir do qual os objetos individuais são instanciados, definindo seus atributos e métodos."
+            },
+            {
+                id: 2,
+                category: "Atributo",
+                question: "Em relação ao conceito de Atributo, qual das afirmações abaixo está correta?",
+                options: [
+                    "Representa as características, estado ou propriedades que um objeto possui.",
+                    "É um bloco de código que executa um cálculo ou ação dentro da classe.",
+                    "É o processo exclusivo de destruir instâncias que não estão mais em uso na memória.",
+                    "Corresponde a um tipo especial de herança entre classes irmãs."
+                ],
+                answerIndex: 0,
+                explanation: "Atributos são as variáveis internas de uma classe/objeto que armazenam seu estado ou características (ex: cor, nome, saldo, idade)."
+            },
+            {
+                id: 3,
+                category: "Método",
+                question: "Qual é o papel fundamental de um Método dentro de uma classe POO?",
+                options: [
+                    "Definir as ações, comportamentos ou operações que o objeto pode realizar.",
+                    "Atuar como a chave primária que identifica o objeto no banco de dados.",
+                    "Alocar espaço de memória RAM fixo para armazenar textos longos.",
+                    "Forçar a conversão de tipos de dados primitivos para inteiros."
+                ],
+                answerIndex: 0,
+                explanation: "Métodos são funções declaradas dentro de uma classe que definem as ações e comportamentos executáveis pelo objeto."
+            },
+            {
+                id: 4,
+                category: "Construtor",
+                question: "Qual é a principal responsabilidade de um Método Construtor em POO?",
+                options: [
+                    "Inicializar os atributos do objeto e preparar a instância no momento em que ela é criada (instanciada).",
+                    "Destruir a classe da memória principal ao encerrar o sistema.",
+                    "Impedir que novos métodos sejam adicionados à classe herdada.",
+                    "Criptografar os dados do objeto antes de salvá-los em disco."
+                ],
+                answerIndex: 0,
+                explanation: "O construtor é executado automaticamente no instante em que o objeto é instanciado (usando a palavra-chave 'new', por exemplo), garantindo o estado inicial correto."
+            },
+            {
+                id: 5,
+                category: "Encapsulamento",
+                question: "O mecanismo de Encapsulamento em POO tem como objetivo principal:",
+                options: [
+                    "Esconder os detalhes internos de implementação de um objeto, controlando o acesso a seus atributos através de modificadores (ex: private, public).",
+                    "Permitir que qualquer classe externa altere livremente todas as variáveis internas do objeto.",
+                    "Eliminar a necessidade de declarar métodos construtores no código.",
+                    "Garantir que a classe possa herdar de múltiplas superclasses simultaneamente."
+                ],
+                answerIndex: 0,
+                explanation: "O Encapsulamento protege os dados internos de modificações indevidas, expondo apenas interfaces/métodos públicos seguros (getters e setters) para interação."
+            },
+            {
+                id: 6,
+                category: "Herança",
+                question: "Como se define o conceito de Herança em POO?",
+                options: [
+                    "O mecanismo que permite a uma nova classe herdar atributos e métodos de uma classe existente, promovendo reutilização de código.",
+                    "A capacidade de um mesmo método apresentar diferentes comportamentos em tempo de execução.",
+                    "A duplicação automática de arquivos fonte no diretório do projeto.",
+                    "A conversão estática de um objeto para formato JSON para transmissão web."
+                ],
+                answerIndex: 0,
+                explanation: "A Herança estabelece uma relação de hierarquia onde uma classe filha reaproveita e/ou estende as características e comportamentos da classe pai."
+            },
+            {
+                id: 7,
+                category: "Superclasse e Classe Base",
+                question: "Qual a relação entre os termos Superclasse e Classe Base?",
+                options: [
+                    "Ambos referem-se à classe genérica/mãe da qual outras classes (subclasses ou derivadas) herdam características.",
+                    "Superclasse refere-se apenas a métodos públicos, enquanto Classe Base refere-se a métodos privados.",
+                    "Superclasse é um objeto já instanciado, enquanto Classe Base é uma interface sem código.",
+                    "A Classe Base sempre herda da Superclasse em todas as linguagens POO."
+                ],
+                answerIndex: 0,
+                explanation: "Superclasse (ou Classe Pai) e Classe Base são sinônimos comuns para designar a classe superior na hierarquia de herança."
+            },
+            {
+                id: 8,
+                category: "Herança & Sobrescrita",
+                question: "Quando uma Subclasse redefine a implementação de um método herdado da sua Superclasse, ocorre o fenômeno de:",
+                options: [
+                    "Sobrescrita de Método (Method Overriding).",
+                    "Destruição de Instância.",
+                    "Encapsulamento Estático.",
+                    "Compilação Cruzada."
+                ],
+                answerIndex: 0,
+                explanation: "A sobrescrita (override) permite que a classe filha forneça uma implementação específica para um método que já foi definido em sua superclasse."
+            },
+            {
+                id: 9,
+                category: "Encapsulamento & Visibilidade",
+                question: "Se um atributo de uma classe está definido com visibilidade 'Privada' (private), como ele deve ser acessado por classes externas?",
+                options: [
+                    "Através de métodos públicos de acesso (geralmente conhecidos como getters e setters).",
+                    "Acessando diretamente a variável com a notação de ponto (ex: objeto.atributo).",
+                    "Não é possível ler nem modificar o valor de um atributo privado em nenhuma hipótese.",
+                    "Apenas através de chamadas do sistema operacional."
+                ],
+                answerIndex: 0,
+                explanation: "Atributos privados não são acessíveis diretamente por fora da classe. O acesso controlado é fornecido por métodos públicos específicos (Getters/Setters)."
+            },
+            {
+                id: 10,
+                category: "Instanciação & Objeto",
+                question: "Qual a relação direta entre o conceito de Classe e o conceito de Objeto?",
+                options: [
+                    "O Objeto é uma instância concreta realizada a partir da definição da Classe.",
+                    "A Classe é uma cópia em tempo de execução de um Objeto em uso.",
+                    "A Classe e o Objeto representam exatamente a mesma entidade física de memória.",
+                    "Objetos só existem em linguagens estruturadas, enquanto Classes existem apenas em POO."
+                ],
+                answerIndex: 0,
+                explanation: "A classe é o modelo teórico/abstrato; o objeto é a instância concreta criada na memória a partir desse modelo."
+            }
+        ];
+
+        // ESTADO GLOBAL DA APLICAÇÃO
+        let appState = {
+            studentName: "Dev Estudante",
+            bannerStyle: "gradient",
+            questions: [],
+            userAnswers: {},
+            currentQuestionIndex: 0,
+            avatarSeed: Math.floor(Math.random() * 1000),
+            timerInterval: null,
+            timeLeft: QUESTION_TIMEOUT
+        };
+
+        // GESTÃO DE TENTATIVAS LOCALSTORAGE
+        function getAttempts() {
+            return parseInt(localStorage.getItem('poo_quiz_attempts') || '0', 10);
+        }
+
+        function incrementAttempts() {
+            const current = getAttempts();
+            const next = current + 1;
+            localStorage.setItem('poo_quiz_attempts', next.toString());
+            return next;
+        }
+
+        function updateAttemptsBadge() {
+            const current = getAttempts();
+            const badge = document.getElementById('attempts-badge');
+            if (badge) {
+                badge.textContent = `Tentativas: ${current}/${MAX_ATTEMPTS}`;
+            }
+        }
+
+        function checkAttemptLimit() {
+            const current = getAttempts();
+            if (current >= MAX_ATTEMPTS) {
+                document.getElementById('sec-login').classList.add('hidden');
+                document.getElementById('sec-quiz').classList.add('hidden');
+                document.getElementById('sec-results').classList.add('hidden');
+                document.getElementById('sec-blocked').classList.remove('hidden');
+                return true;
+            }
+            return false;
+        }
+
+        // EMBARALHAMENTO
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function prepareShuffledQuestions() {
+            const shuffledQuestions = shuffleArray(RAW_QUESTIONS_BANK);
+            return shuffledQuestions.map((q) => {
+                const originalOptions = q.options;
+                const correctAnswerText = originalOptions[q.answerIndex];
+                const shuffledOptions = shuffleArray(originalOptions);
+                const newCorrectIndex = shuffledOptions.indexOf(correctAnswerText);
+
+                return {
+                    ...q,
+                    options: shuffledOptions,
+                    answerIndex: newCorrectIndex
+                };
+            });
+        }
+
+        // DESENHAR AVATAR
+        function drawDevAvatar(canvasId, seed) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, w, h);
+
+            const hue1 = (seed * 137) % 360;
+            const hue2 = (hue1 + 120) % 360;
+
+            const grad = ctx.createLinearGradient(0, 0, w, h);
+            grad.addColorStop(0, `hsl(${hue1}, 80%, 50%)`);
+            grad.addColorStop(1, `hsl(${hue2}, 80%, 40%)`);
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(w / 2, h / 2, w * 0.38, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${w * 0.35}px 'Fira Code', monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const symbols = ['</>', '{}', 'POO', 'OOP', 'class', '=>'];
+            const symbol = symbols[seed % symbols.length];
+            ctx.fillText(symbol, w / 2, h / 2);
+
+            ctx.strokeStyle = `hsl(${hue1}, 90%, 65%)`;
+            ctx.lineWidth = w * 0.04;
+            ctx.strokeRect(2, 2, w - 4, h - 4);
+        }
+
+        // DESENHAR BANNER
+        function drawQuizBanner(canvasId, style) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.offsetWidth || 800;
+            const h = canvas.height = canvas.offsetHeight || 120;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (style === 'matrix') {
+                ctx.fillStyle = '#05190e';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#10b981';
+                ctx.font = '12px Fira Code, monospace';
+                for (let i = 0; i < w; i += 20) {
+                    for (let j = 0; j < h; j += 18) {
+                        const char = String.fromCharCode(0x30A0 + Math.random() * 30);
+                        ctx.globalAlpha = Math.random() * 0.5 + 0.2;
+                        ctx.fillText(char, i, j);
+                    }
+                }
+            } else if (style === 'minimal') {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < w; x += 30) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+            } else {
+                const grad = ctx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#1e1b4b');
+                grad.addColorStop(0.5, '#1e3a8a');
+                grad.addColorStop(1, '#0f172a');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
+                ctx.beginPath();
+                ctx.arc(w * 0.8, h * 0.2, 80, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        // CONTROLE DO CRONÔMETRO
+        function startQuestionTimer() {
+            stopQuestionTimer();
+            appState.timeLeft = QUESTION_TIMEOUT;
+            updateTimerDisplay();
+
+            appState.timerInterval = setInterval(() => {
+                appState.timeLeft--;
+                updateTimerDisplay();
+
+                if (appState.timeLeft <= 0) {
+                    stopQuestionTimer();
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function stopQuestionTimer() {
+            if (appState.timerInterval) {
+                clearInterval(appState.timerInterval);
+                appState.timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer-display');
+            if (timerEl) {
+                timerEl.textContent = appState.timeLeft;
+            }
+        }
+
+        function handleTimeOut() {
+            const total = appState.questions.length;
+            if (appState.currentQuestionIndex < total - 1) {
+                appState.currentQuestionIndex++;
+                renderCurrentQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        // INICIALIZAÇÃO DA PÁGINA
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAttemptLimit()) return;
+
+            updateAttemptsBadge();
+            drawDevAvatar('login-avatar-canvas', appState.avatarSeed);
+
+            document.getElementById('btn-generate-avatar').addEventListener('click', () => {
+                appState.avatarSeed = Math.floor(Math.random() * 9999);
+                drawDevAvatar('login-avatar-canvas', appState.avatarSeed);
+            });
+
+            document.getElementById('btn-start-quiz').addEventListener('click', startQuiz);
+            document.getElementById('btn-prev').addEventListener('click', prevQuestion);
+            document.getElementById('btn-next').addEventListener('click', nextQuestion);
+            document.getElementById('btn-finish').addEventListener('click', finishQuiz);
+            document.getElementById('btn-restart').addEventListener('click', restartQuiz);
+            document.getElementById('btn-download-png').addEventListener('click', downloadResultAsPNG);
+        });
+
+        // INICIAR AVALIAÇÃO
+        function startQuiz() {
+            if (checkAttemptLimit()) return;
+
+            const nameInput = document.getElementById('student-name').value.trim();
+            appState.studentName = nameInput || "Desenvolvedor";
+            appState.bannerStyle = document.getElementById('banner-style').value;
+            appState.currentQuestionIndex = 0;
+            appState.userAnswers = {};
+
+            appState.questions = prepareShuffledQuestions();
+
+            document.getElementById('header-user-name').textContent = appState.studentName;
+            document.getElementById('quiz-student-display-name').textContent = appState.studentName;
+            document.getElementById('header-user-info').classList.remove('hidden');
+            document.getElementById('header-user-info').classList.add('flex');
+
+            drawDevAvatar('header-avatar-canvas', appState.avatarSeed);
+            drawDevAvatar('quiz-header-avatar', appState.avatarSeed);
+            drawQuizBanner('quiz-banner-canvas', appState.bannerStyle);
+
+            document.getElementById('sec-login').classList.add('hidden');
+            document.getElementById('sec-quiz').classList.remove('hidden');
+
+            renderQuestionDots();
+            renderCurrentQuestion();
+        }
+
+        function renderQuestionDots() {
+            const container = document.getElementById('question-dots-container');
+            container.innerHTML = '';
+
+            appState.questions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.className = getDotClass(idx);
+                btn.textContent = idx + 1;
+                btn.onclick = () => jumpToQuestion(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function getDotClass(index) {
+            const isCurrent = index === appState.currentQuestionIndex;
+            const isAnswered = appState.userAnswers.hasOwnProperty(index);
+
+            let base = "w-8 h-8 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center border ";
+
+            if (isCurrent) {
+                return base + "bg-brand-600 text-white border-brand-400 ring-2 ring-brand-400/50";
+            } else if (isAnswered) {
+                return base + "bg-emerald-950/80 text-emerald-300 border-emerald-600/80";
+            } else {
+                return base + "bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-500";
+            }
+        }
+
+        function renderCurrentQuestion() {
+            const q = appState.questions[appState.currentQuestionIndex];
+            const total = appState.questions.length;
+
+            document.getElementById('progress-text').textContent = `Questão ${appState.currentQuestionIndex + 1} de ${total}`;
+            const answeredCount = Object.keys(appState.userAnswers).length;
+            document.getElementById('answered-count-text').textContent = `${answeredCount} de ${total} respondida(s)`;
+            
+            const percentage = ((appState.currentQuestionIndex + 1) / total) * 100;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+
+            document.getElementById('question-category').innerHTML = `<i class="fa-solid fa-bookmark text-indigo-400"></i> Conceito: ${q.category}`;
+            document.getElementById('question-text').textContent = `${appState.currentQuestionIndex + 1}. ${q.question}`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            const selectedAnswer = appState.userAnswers[appState.currentQuestionIndex];
+
+            q.options.forEach((optionText, optIdx) => {
+                const isSelected = selectedAnswer === optIdx;
+
+                const optButton = document.createElement('div');
+                optButton.className = `p-4 rounded-xl border cursor-pointer transition flex items-start gap-3 ${
+                    isSelected 
+                        ? 'bg-brand-950/60 border-brand-500 text-white ring-1 ring-brand-500 shadow-md' 
+                        : 'bg-slate-900/60 border-slate-700/80 hover:border-slate-500 text-slate-200 hover:bg-slate-900'
+                }`;
+
+                optButton.onclick = () => selectOption(optIdx);
+
+                optButton.innerHTML = `
+                    <div class="w-6 h-6 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+                        isSelected ? 'bg-brand-500 text-white' : 'bg-slate-800 border border-slate-600 text-slate-300'
+                    }">
+                        ${letters[optIdx]}
+                    </div>
+                    <div class="text-sm leading-relaxed font-medium">
+                        ${optionText}
+                    </div>
+                `;
+
+                optionsContainer.appendChild(optButton);
+            });
+
+            document.getElementById('btn-prev').disabled = (appState.currentQuestionIndex === 0);
+
+            if (appState.currentQuestionIndex === total - 1) {
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('btn-finish').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('btn-finish').classList.add('hidden');
+            }
+
+            renderQuestionDots();
+            startQuestionTimer();
+        }
+
+        function selectOption(optionIndex) {
+            appState.userAnswers[appState.currentQuestionIndex] = optionIndex;
+            renderCurrentQuestion();
+        }
+
+        function nextQuestion() {
+            if (appState.currentQuestionIndex < appState.questions.length - 1) {
+                appState.currentQuestionIndex++;
+                renderCurrentQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (appState.currentQuestionIndex > 0) {
+                appState.currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            appState.currentQuestionIndex = index;
+            renderCurrentQuestion();
+        }
+
+        // FINALIZAR AVALIAÇÃO
+        function finishQuiz() {
+            stopQuestionTimer();
+
+            // Incrementar e salvar o contador de tentativas consumidas
+            incrementAttempts();
+
+            const totalQuestions = appState.questions.length;
+            let correctCount = 0;
+
+            appState.questions.forEach((q, idx) => {
+                const userChoice = appState.userAnswers[idx];
+                if (userChoice === q.answerIndex) {
+                    correctCount++;
+                }
+            });
+
+            const wrongCount = totalQuestions - correctCount;
+            const percentage = Math.round((correctCount / totalQuestions) * 100);
+
+            document.getElementById('res-correct').textContent = correctCount;
+            document.getElementById('res-wrong').textContent = wrongCount;
+            document.getElementById('res-percentage').textContent = `${percentage}%`;
+
+            const today = new Date().toLocaleDateString('pt-BR');
+            document.getElementById('result-student-info').textContent = `Aluno: ${appState.studentName} | Data: ${today}`;
+
+            const feedbackBox = document.getElementById('feedback-box');
+            const resultStatusBar = document.getElementById('result-status-bar');
+            const resultIcon = document.getElementById('result-icon');
+
+            if (percentage >= 80) {
+                feedbackBox.className = "p-4 rounded-xl border bg-emerald-950/60 border-emerald-600/80 text-emerald-200 text-center text-sm font-medium";
+                feedbackBox.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i> <strong>Excelente Desempenho!</strong> Você domina com clareza os conceitos de POO.`;
+                resultStatusBar.className = "absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 to-teal-400";
+                resultIcon.className = "fa-solid fa-trophy text-3xl text-emerald-400";
+            } else if (percentage >= 50) {
+                feedbackBox.className = "p-4 rounded-xl border bg-amber-950/60 border-amber-600/80 text-amber-200 text-center text-sm font-medium";
+                feedbackBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i> <strong>Bom Trabalho!</strong> Você possui uma boa base em POO.`;
+                resultStatusBar.className = "absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 to-yellow-400";
+                resultIcon.className = "fa-solid fa-award text-3xl text-amber-400";
+            } else {
+                feedbackBox.className = "p-4 rounded-xl border bg-rose-950/60 border-rose-600/80 text-rose-200 text-center text-sm font-medium";
+                feedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400 mr-2"></i> <strong>Precisa Revisar!</strong> Recomendamos estudar novamente os tópicos essenciais.`;
+                resultStatusBar.className = "absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-rose-500 to-red-600";
+                resultIcon.className = "fa-solid fa-book-openReader text-3xl text-rose-400";
+            }
+
+            renderDetailedFeedback();
+
+            document.getElementById('sec-quiz').classList.add('hidden');
+            document.getElementById('sec-results').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // EXPORTAR RESULTADO EM PNG
+        function downloadResultAsPNG() {
+            const captureArea = document.getElementById('result-capture-area');
+            const btnPNG = document.getElementById('btn-download-png');
+            const originalText = btnPNG.innerHTML;
+
+            btnPNG.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PNG...`;
+            btnPNG.disabled = true;
+
+            html2canvas(captureArea, {
+                backgroundColor: '#1e293b',
+                scale: 2
+            }).then((canvas) => {
+                const image = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                const safeName = appState.studentName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                link.download = `resultado_poo_${safeName}.png`;
+                link.href = image;
+                link.click();
+
+                btnPNG.innerHTML = originalText;
+                btnPNG.disabled = false;
+            }).catch(() => {
+                alert('Erro ao gerar o arquivo PNG.');
+                btnPNG.innerHTML = originalText;
+                btnPNG.disabled = false;
+            });
+        }
+
+        function renderDetailedFeedback() {
+            const container = document.getElementById('feedback-list-container');
+            container.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+
+            appState.questions.forEach((q, idx) => {
+                const userChoice = appState.userAnswers[idx];
+                const isCorrect = (userChoice === q.answerIndex);
+                const isUnanswered = (userChoice === undefined);
+
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-xl border transition ${
+                    isCorrect 
+                        ? 'bg-slate-900/90 border-emerald-800/60' 
+                        : 'bg-slate-900/90 border-rose-800/60'
+                }`;
+
+                const userChoiceText = !isUnanswered ? `${letters[userChoice]}) ${q.options[userChoice]}` : "Nenhuma resposta selecionada";
+                const correctChoiceText = `${letters[q.answerIndex]}) ${q.options[q.answerIndex]}`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                            Questão ${idx + 1} - ${q.category}
+                        </span>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${
+                            isCorrect 
+                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-700' 
+                                : 'bg-rose-950 text-rose-300 border border-rose-700'
+                        }">
+                            <i class="fa-solid ${isCorrect ? 'fa-check' : 'fa-xmark'}"></i>
+                            ${isCorrect ? 'Correta' : 'Incorreta'}
+                        </span>
+                    </div>
+
+                    <h4 class="font-semibold text-slate-100 text-base mb-4 leading-relaxed">${q.question}</h4>
+
+                    <div class="space-y-2 text-xs md:text-sm font-mono mb-4">
+                        <div class="p-2.5 rounded-lg ${isCorrect ? 'bg-emerald-950/40 text-emerald-200 border border-emerald-800/40' : 'bg-rose-950/40 text-rose-200 border border-rose-800/40'}">
+                            <span class="font-bold uppercase text-[10px] tracking-wider block text-slate-400 mb-0.5">Sua Resposta:</span>
+                            ${userChoiceText}
+                        </div>
+
+                        ${!isCorrect ? `
+                            <div class="p-2.5 rounded-lg bg-emerald-950/30 text-emerald-200 border border-emerald-800/40">
+                                <span class="font-bold uppercase text-[10px] tracking-wider block text-emerald-400 mb-0.5">Resposta Correta:</span>
+                                ${correctChoiceText}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                        <span class="font-bold text-brand-400 flex items-center gap-1 mb-1 font-mono">
+                            <i class="fa-solid fa-lightbulb"></i> Explicação Conceitual:
+                        </span>
+                        ${q.explanation}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function restartQuiz() {
+            if (checkAttemptLimit()) return;
+
+            document.getElementById('sec-results').classList.add('hidden');
+            document.getElementById('sec-login').classList.remove('hidden');
+            updateAttemptsBadge();
+        }
+    </script>
+</body>
+</html>
