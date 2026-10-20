@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador PHP POO Interativo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        php: {
+                            light: '#777BB4',
+                            DEFAULT: '#4F5B93',
+                            dark: '#313961',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'JetBrains Mono', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Highlight.js for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css" id="hljs-theme">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/php.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.6);
+        }
+        
+        .code-container {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-php text-white p-2 rounded-xl shadow-md flex items-center justify-center">
+                    <i class="fa-brands fa-php text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gerador PHP POO</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Criador de Classes e Objetos PHP 8+</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggle" class="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors" title="Alternar Tema">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Input Form -->
+        <section class="lg:col-span-5 flex flex-col space-y-6">
+            
+            <!-- Quick Load Presets -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                    <i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Carregar Exemplos Rápida
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="loadPreset('produto')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800">
+                        <i class="fa-solid fa-box mr-1"></i> Produto
+                    </button>
+                    <button type="button" onclick="loadPreset('veiculo')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-200 dark:border-emerald-800">
+                        <i class="fa-solid fa-car mr-1"></i> Veículo
+                    </button>
+                    <button type="button" onclick="loadPreset('pessoa')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/50 transition-colors border border-blue-200 dark:border-blue-800">
+                        <i class="fa-solid fa-user mr-1"></i> Pessoa
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form id="generatorForm" onsubmit="event.preventDefault(); generateCode();" class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5 flex-1 flex flex-col justify-between">
+                
+                <div class="space-y-5">
+                    <!-- Class & Instance Configuration -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="className" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                Nome da Classe <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" id="className" value="Produto" required placeholder="Ex: Produto"
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-php focus:border-transparent outline-none transition-all">
+                        </div>
+                        <div>
+                            <label for="objectName" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                Nome da Instância <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono text-sm">$</span>
+                                <input type="text" id="objectName" value="produto1" required placeholder="Ex: produto1"
+                                    class="w-full pl-7 pr-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-php focus:border-transparent outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Attributes Section -->
+                    <div class="border-t border-slate-200 dark:border-slate-700 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                Atributos & Testes
+                            </label>
+                            <button type="button" onclick="addAttributeRow()" 
+                                class="px-2.5 py-1 text-xs font-medium rounded-lg bg-php text-white hover:bg-php-dark transition-colors shadow-sm flex items-center space-x-1">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                                <span>Adicionar</span>
+                            </button>
+                        </div>
+
+                        <!-- Attributes List Container -->
+                        <div id="attributesContainer" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                            <!-- Rows added dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <button type="submit" 
+                        class="w-full py-2.5 px-4 rounded-xl bg-php hover:bg-php-dark text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-code"></i>
+                        <span>Gerar Código PHP</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Right Column: Generated Code Display -->
+        <section class="lg:col-span-7 flex flex-col">
+            <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-xl overflow-hidden flex flex-col h-full min-h-[500px]">
+                
+                <!-- Code Header Bar -->
+                <div class="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                        <span id="fileNameDisplay" class="ml-2 text-xs font-mono text-slate-400">ClassCode.php</span>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <!-- Copy Code Button -->
+                        <button type="button" id="copyBtn" onclick="copyCode()" 
+                            class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-all flex items-center space-x-1.5">
+                            <i id="copyIcon" class="fa-regular fa-copy"></i>
+                            <span id="copyText">Copiar Código</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Code Container -->
+                <div class="flex-1 p-4 overflow-auto code-container bg-[#1d1f21]">
+                    <pre class="m-0"><code id="codeOutput" class="language-php"></code></pre>
+                </div>
+
+                <!-- Code Footer Stats -->
+                <div class="bg-slate-950/60 px-4 py-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500 font-mono">
+                    <span>Sintaxe: PHP 8.0+ POO</span>
+                    <span id="lineCount">0 linhas</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 dark:text-slate-400">
+            <p>desenvolvido por <span class="font-semibold text-slate-700 dark:text-slate-200">Rogério B. de Andrade</span></p>
+        </div>
+    </footer>
+
+    <!-- Templates & Scripts -->
+    <script>
+        // Available PHP Types
+        const PHP_TYPES = ['string', 'int', 'float', 'bool', 'array', 'DateTime', 'mixed', 'object'];
+        
+        // Dark Mode Logic
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const hljsTheme = document.getElementById('hljs-theme');
+
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeIcon.className = 'fa-solid fa-sun text-lg';
+                hljsTheme.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = 'fa-solid fa-moon text-lg';
+                hljsTheme.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css';
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+                themeIcon.className = 'fa-solid fa-moon text-lg';
+                hljsTheme.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+                themeIcon.className = 'fa-solid fa-sun text-lg';
+                hljsTheme.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css';
+            }
+        });
+
+        initTheme();
+
+        // Attribute Row Generation
+        let rowCounter = 0;
+
+        function addAttributeRow(data = { name: '', type: 'string', visibility: 'private', value: '' }) {
+            rowCounter++;
+            const id = rowCounter;
+            const container = document.getElementById('attributesContainer');
+            
+            const card = document.createElement('div');
+            card.id = `attr-row-${id}`;
+            card.className = 'p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-2 relative group transition-all';
+            
+            card.innerHTML = `
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex-1">
+                        <input type="text" placeholder="Nome do Atributo (ex: preco)" value="${data.name}" required
+                            class="attr-name w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-php outline-none">
+                    </div>
+                    <div class="w-28">
+                        <select class="attr-type w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-php outline-none">
+                            ${PHP_TYPES.map(t => `<option value="${t}" ${t === data.type ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="w-24">
+                        <select class="attr-visibility w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-php outline-none">
+                            <option value="private" ${data.visibility === 'private' ? 'selected' : ''}>private</option>
+                            <option value="protected" ${data.visibility === 'protected' ? 'selected' : ''}>protected</option>
+                            <option value="public" ${data.visibility === 'public' ? 'selected' : ''}>public</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="removeAttributeRow(${id})" 
+                        class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+                <div>
+                    <input type="text" placeholder="Valor de Teste para Instância (ex: 29.90 ou 'Notebook')" value="${data.value}"
+                        class="attr-value w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-php outline-none">
+                </div>
+            `;
+
+            container.appendChild(card);
+            
+            // Auto trigger code generation on changes
+            card.querySelectorAll('input, select').forEach(element => {
+                element.addEventListener('input', generateCode);
+            });
+            
+            generateCode();
+        }
+
+        function removeAttributeRow(id) {
+            const row = document.getElementById(`attr-row-${id}`);
+            if (row) {
+                const container = document.getElementById('attributesContainer');
+                if (container.children.length > 1) {
+                    row.remove();
+                    generateCode();
+                } else {
+                    alert('A classe deve possuir pelo menos um atributo!');
+                }
+            }
+        }
+
+        // Format Helper for PHP Code String
+        function formatPhpValue(value, type) {
+            if (value === null || value === undefined || value.trim() === '') {
+                switch(type) {
+                    case 'int': return '0';
+                    case 'float': return '0.0';
+                    case 'bool': return 'false';
+                    case 'array': return '[]';
+                    case 'DateTime': return 'new DateTime()';
+                    default: return "''";
+                }
+            }
+
+            const val = value.trim();
+            switch (type) {
+                case 'int':
+                    return isNaN(parseInt(val)) ? '0' : parseInt(val).toString();
+                case 'float':
+                    return isNaN(parseFloat(val)) ? '0.0' : parseFloat(val).toString();
+                case 'bool':
+                    return ['true', '1', 'sim', 'yes'].includes(val.toLowerCase()) ? 'true' : 'false';
+                case 'array':
+                    return val.startsWith('[') ? val : `[${val}]`;
+                case 'DateTime':
+                    return val.startsWith('new') ? val : `new DateTime('${val}')`;
+                case 'string':
+                default:
+                    return `'${val.replace(/'/g, "\\'")}'`;
+            }
+        }
+
+        // Helper to capitalize first letter
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Generate Code Logic
+        function generateCode() {
+            const rawClassName = document.getElementById('className').value.trim() || 'MinhaClasse';
+            const className = capitalize(rawClassName.replace(/[^a-zA-Z0-0_]/g, ''));
+            
+            const rawObjName = document.getElementById('objectName').value.trim() || 'meuObjeto';
+            const objectName = rawObjName.replace(/[^a-zA-Z0-9_]/g, '');
+
+            document.getElementById('fileNameDisplay').textContent = `${className}.php`;
+
+            // Collect Attributes
+            const attrRows = document.querySelectorAll('#attributesContainer > div');
+            const attributes = [];
+
+            attrRows.forEach(row => {
+                const nameInput = row.querySelector('.attr-name');
+                const typeInput = row.querySelector('.attr-type');
+                const visibilityInput = row.querySelector('.attr-visibility');
+                const valueInput = row.querySelector('.attr-value');
+
+                let attrName = nameInput.value.trim().replace(/[^a-zA-Z0-9_]/g, '');
+                if (attrName) {
+                    attributes.push({
+                        name: attrName,
+                        type: typeInput.value,
+                        visibility: visibilityInput.value,
+                        testValue: valueInput.value
+                    });
+                }
+            });
+
+            // Build PHP Code
+            let php = `<?php\n\n`;
+            php += `declare(strict_types=1);\n\n`;
+            php += `/**\n`;
+            php += ` * Classe ${className}\n`;
+            php += ` * Gerada automaticamente via Gerador PHP POO\n`;
+            php += ` */\n`;
+            php += `class ${className}\n{\n`;
+
+            // Properties
+            attributes.forEach(attr => {
+                php += `    ${attr.visibility} ${attr.type} $${attr.name};\n`;
+            });
+
+            if (attributes.length > 0) php += `\n`;
+
+            // Constructor
+            php += `    /**\n     * Construtor da Classe\n     */\n`;
+            php += `    public function __construct(\n`;
+            const constrParams = attributes.map(attr => `        ${attr.type} $${attr.name}`).join(',\n');
+            php += constrParams ? `${constrParams}\n    ) {\n` : `    ) {\n`;
+            attributes.forEach(attr => {
+                php += `        $this->${attr.name} = $${attr.name};\n`;
+            });
+            php += `    }\n\n`;
+
+            // Getters & Setters
+            attributes.forEach(attr => {
+                const capName = capitalize(attr.name);
+                
+                // Getter
+                php += `    public function get${capName}(): ${attr.type}\n    {\n`;
+                php += `        return $this->${attr.name};\n    }\n\n`;
+
+                // Setter
+                php += `    public function set${capName}(${attr.type} $${attr.name}): void\n    {\n`;
+                php += `        $this->${attr.name} = $${attr.name};\n    }\n\n`;
+            });
+
+            // exibirInformacoes Method
+            php += `    /**\n     * Exibe os detalhes e valores de todas as propriedades da instância\n     */\n`;
+            php += `    public function exibirInformacoes(): void\n    {\n`;
+            php += `        echo "========================================\\n";\n`;
+            php += `        echo " Informações da Classe: ${className}\\n";\n`;
+            php += `        echo "========================================\\n";\n`;
+
+            attributes.forEach(attr => {
+                if (attr.type === 'bool') {
+                    php += `        echo "${capitalize(attr.name)}: " . ($this->${attr.name} ? 'Sim' : 'Não') . "\\n";\n`;
+                } else if (attr.type === 'array') {
+                    php += `        echo "${capitalize(attr.name)}: " . implode(', ', $this->${attr.name}) . "\\n";\n`;
+                } else if (attr.type === 'DateTime') {
+                    php += `        echo "${capitalize(attr.name)}: " . $this->${attr.name}->format('Y-m-d H:i:s') . "\\n";\n`;
+                } else {
+                    php += `        echo "${capitalize(attr.name)}: " . $this->${attr.name} . "\\n";\n`;
+                }
+            });
+
+            php += `        echo "========================================\\n\\n";\n`;
+            php += `    }\n`;
+            php += `}\n\n`;
+
+            // Demonstration Section
+            php += `// ====================================================\n`;
+            php += `// CÓDIGO DE DEMONSTRAÇÃO E USO DA CLASSE\n`;
+            php += `// ====================================================\n\n`;
+
+            // Object Instantiation
+            const argValues = attributes.map(attr => formatPhpValue(attr.testValue, attr.type)).join(', ');
+            php += `// 1. Instanciando o Objeto\n`;
+            php += `$${objectName} = new ${className}(\n    ${attributes.map(attr => formatPhpValue(attr.testValue, attr.type)).join(',\n    ')}\n);\n\n`;
+
+            // Call exibirInformacoes()
+            php += `// 2. Chamando o método exibirInformacoes()\n`;
+            php += `echo "--- Exibindo Estado Inicial ---\\n";\n`;
+            php += `$${objectName}->exibirInformacoes();\n\n`;
+
+            // Demonstrate Getters & Setters
+            if (attributes.length > 0) {
+                const sampleAttr = attributes[0];
+                const capSampleName = capitalize(sampleAttr.name);
+                php += `// 3. Exemplo de uso de Getter e Setter\n`;
+                php += `echo "--- Utilizando Getters e Setters ---\\n";\n`;
+                php += `echo "Valor atual de ${sampleAttr.name}: " . $${objectName}->get${capSampleName}() . "\\n";\n`;
+                
+                // Show sample setter modification
+                let newValue = sampleAttr.testValue;
+                if (sampleAttr.type === 'string') newValue += ' (Atualizado)';
+                else if (sampleAttr.type === 'int' || sampleAttr.type === 'float') newValue = (parseFloat(newValue || '10') * 1.5).toString();
+
+                php += `$${objectName}->set${capSampleName}(${formatPhpValue(newValue, sampleAttr.type)});\n`;
+                php += `echo "Novo valor de ${sampleAttr.name}: " . $${objectName}->get${capSampleName}() . "\\n";\n`;
+            }
+
+            // Output to UI
+            const codeOutput = document.getElementById('codeOutput');
+            codeOutput.textContent = php;
+            hljs.highlightElement(codeOutput);
+
+            // Update line count
+            const lines = php.split('\n').length;
+            document.getElementById('lineCount').textContent = `${lines} linhas`;
+        }
+
+        // Copy Code Functionality
+        function copyCode() {
+            const codeText = document.getElementById('codeOutput').textContent;
+            
+            // Clipboard copy via fallback method for compatibility
+            const textarea = document.createElement('textarea');
+            textarea.value = codeText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            const copyBtn = document.getElementById('copyBtn');
+            const copyIcon = document.getElementById('copyIcon');
+            const copyText = document.getElementById('copyText');
+
+            copyIcon.className = 'fa-solid fa-check text-emerald-400';
+            copyText.textContent = 'Copiado!';
+            copyBtn.classList.add('border-emerald-500', 'text-emerald-400');
+
+            setTimeout(() => {
+                copyIcon.className = 'fa-regular fa-copy';
+                copyText.textContent = 'Copiar Código';
+                copyBtn.classList.remove('border-emerald-500', 'text-emerald-400');
+            }, 2000);
+        }
+
+        // Preset Examples Loader
+        function loadPreset(type) {
+            const container = document.getElementById('attributesContainer');
+            container.innerHTML = '';
+
+            if (type === 'produto') {
+                document.getElementById('className').value = 'Produto';
+                document.getElementById('objectName').value = 'produto1';
+                addAttributeRow({ name: 'id', type: 'int', visibility: 'private', value: '101' });
+                addAttributeRow({ name: 'nome', type: 'string', visibility: 'private', value: 'Teclado Mecânico RGB' });
+                addAttributeRow({ name: 'preco', type: 'float', visibility: 'private', value: '299.90' });
+                addAttributeRow({ name: 'emEstoque', type: 'bool', visibility: 'private', value: 'true' });
+            } else if (type === 'veiculo') {
+                document.getElementById('className').value = 'Veiculo';
+                document.getElementById('objectName').value = 'meuCarro';
+                addAttributeRow({ name: 'marca', type: 'string', visibility: 'private', value: 'Toyota' });
+                addAttributeRow({ name: 'modelo', type: 'string', visibility: 'private', value: 'Corolla' });
+                addAttributeRow({ name: 'ano', type: 'int', visibility: 'private', value: '2023' });
+                addAttributeRow({ name: 'valor', type: 'float', visibility: 'private', value: '145000.00' });
+            } else if (type === 'pessoa') {
+                document.getElementById('className').value = 'Pessoa';
+                document.getElementById('objectName').value = 'pessoa1';
+                addAttributeRow({ name: 'nome', type: 'string', visibility: 'private', value: 'Ana Silva' });
+                addAttributeRow({ name: 'idade', type: 'int', visibility: 'private', value: '28' });
+                addAttributeRow({ name: 'email', type: 'string', visibility: 'private', value: 'ana.silva@email.com' });
+                addAttributeRow({ name: 'ativo', type: 'bool', visibility: 'private', value: 'true' });
+            }
+        }
+
+        // Add input events to static inputs
+        document.getElementById('className').addEventListener('input', generateCode);
+        document.getElementById('objectName').addEventListener('input', generateCode);
+
+        // Load Default Preset on Startup
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPreset('produto');
+        });
+    </script>
+</body>
+</html>
